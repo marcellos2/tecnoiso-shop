@@ -8,6 +8,8 @@ export interface Product {
   category: string;
   inStock: boolean;
   discount?: number;
+  rating?: number;
+  reviews?: number;
   specifications?: Record<string, string>;
 }
 
