@@ -1,8 +1,7 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, Truck, ShieldCheck, Clock, CheckCircle2, QrCode, CreditCard } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Truck, ShieldCheck, Clock, CheckCircle2, QrCode, CreditCard, Star, Package, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/contexts/CartContext";
@@ -24,10 +23,15 @@ export default function ProductDetail() {
     return (
       <>
         <Header />
-        <main className="container py-12 text-center">
-          <h1 className="text-2xl font-bold">Produto não encontrado</h1>
+        <main className="container py-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
+          <Package className="w-24 h-24 text-muted-foreground mb-6" />
+          <h1 className="text-2xl font-bold mb-4">Produto não encontrado</h1>
+          <p className="text-muted-foreground mb-6">O produto que você procura não existe ou foi removido.</p>
           <Link to="/">
-            <Button className="mt-4">Voltar ao Início</Button>
+            <Button className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Voltar ao Início
+            </Button>
           </Link>
         </main>
         <Footer />
@@ -55,25 +59,25 @@ export default function ProductDetail() {
       <Header />
       <main className="container py-8">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link to="/" className="hover:text-primary">Início</Link>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+          <Link to="/" className="hover:text-primary transition-colors">Início</Link>
           <span>/</span>
-          <Link to="/produtos" className="hover:text-primary">Produtos</Link>
+          <Link to="/produtos" className="hover:text-primary transition-colors">Produtos</Link>
           <span>/</span>
-          <span className="text-foreground">{product.name}</span>
+          <span className="text-foreground font-medium">{product.name}</span>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-12">
           {/* Image */}
           <div className="space-y-4">
-            <div className="aspect-square bg-secondary rounded-xl overflow-hidden relative">
+            <div className="aspect-square bg-gradient-to-br from-secondary to-muted rounded-3xl overflow-hidden relative group">
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               {product.discount && (
-                <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">
+                <Badge className="absolute top-6 left-6 bg-accent text-accent-foreground text-lg px-4 py-2">
                   -{product.discount}% OFF
                 </Badge>
               )}
@@ -82,128 +86,163 @@ export default function ProductDetail() {
 
           {/* Details */}
           <div>
-            <Badge variant="secondary" className="mb-3">{product.category}</Badge>
-            <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-            <p className="text-muted-foreground mb-6">{product.description}</p>
+            <Badge variant="secondary" className="badge-category mb-4">{product.category}</Badge>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">{product.name}</h1>
+            
+            {/* Rating placeholder */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="flex">
+                {[1,2,3,4,5].map((star) => (
+                  <Star key={star} className="w-5 h-5 fill-accent text-accent" />
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">(47 avaliações)</span>
+            </div>
+
+            <p className="text-muted-foreground text-lg mb-8 leading-relaxed">{product.description}</p>
 
             {/* Price */}
-            <Card className="p-6 mb-6">
+            <Card className="p-6 mb-8 border-2 border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
               {product.originalPrice && (
                 <p className="text-muted-foreground line-through text-lg">
-                  {formatPrice(product.originalPrice)}
+                  De {formatPrice(product.originalPrice)}
                 </p>
               )}
-              <p className="text-4xl font-bold text-foreground">
+              <p className="text-4xl font-extrabold text-foreground mb-2">
                 {formatPrice(product.price)}
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <QrCode className="w-5 h-5 text-success" />
-                <span className="text-xl font-semibold text-success">
-                  {formatPrice(pixPrice)} no PIX
-                </span>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-2 bg-success/10 px-3 py-1.5 rounded-full">
+                  <QrCode className="w-5 h-5 text-success" />
+                  <span className="text-lg font-bold text-success">
+                    {formatPrice(pixPrice)} no PIX
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 mt-2 text-muted-foreground">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <CreditCard className="w-4 h-4" />
                 <span>ou 12x de {formatPrice(product.price / 12)} sem juros</span>
               </div>
             </Card>
 
             {/* Quantity & Add to Cart */}
-            <div className="flex gap-4 mb-6">
-              <div className="flex items-center border border-border rounded-lg">
+            <div className="flex gap-4 mb-8">
+              <div className="flex items-center border-2 border-border rounded-xl overflow-hidden">
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="rounded-none h-14 w-14"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 >
                   -
                 </Button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
+                <span className="w-14 text-center font-bold text-lg">{quantity}</span>
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="rounded-none h-14 w-14"
                   onClick={() => setQuantity(quantity + 1)}
                 >
                   +
                 </Button>
               </div>
               <Button
-                className="flex-1 h-12 text-lg gap-2"
+                className="flex-1 h-14 text-lg gap-3 rounded-xl font-bold"
                 disabled={!product.inStock}
                 onClick={handleAddToCart}
               >
-                <ShoppingCart className="w-5 h-5" />
-                {product.inStock ? "Adicionar ao Carrinho" : "Indisponível"}
+                <ShoppingCart className="w-6 h-6" />
+                {product.inStock ? "Adicionar ao Carrinho" : "Produto Indisponível"}
               </Button>
             </div>
 
             {/* Benefits */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="flex flex-col items-center text-center p-3 bg-secondary rounded-lg">
-                <Truck className="w-6 h-6 text-primary mb-2" />
-                <span className="text-xs font-medium">Frete Grátis</span>
-                <span className="text-xs text-muted-foreground">acima de R$500</span>
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="flex items-center gap-3 p-4 bg-secondary rounded-xl">
+                <Truck className="w-6 h-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-sm">Frete Grátis</p>
+                  <p className="text-xs text-muted-foreground">Acima de R$500</p>
+                </div>
               </div>
-              <div className="flex flex-col items-center text-center p-3 bg-secondary rounded-lg">
-                <ShieldCheck className="w-6 h-6 text-primary mb-2" />
-                <span className="text-xs font-medium">Garantia</span>
-                <span className="text-xs text-muted-foreground">12 meses</span>
+              <div className="flex items-center gap-3 p-4 bg-secondary rounded-xl">
+                <ShieldCheck className="w-6 h-6 text-success" />
+                <div>
+                  <p className="font-semibold text-sm">Garantia</p>
+                  <p className="text-xs text-muted-foreground">12 meses</p>
+                </div>
               </div>
-              <div className="flex flex-col items-center text-center p-3 bg-secondary rounded-lg">
-                <Clock className="w-6 h-6 text-primary mb-2" />
-                <span className="text-xs font-medium">Entrega</span>
-                <span className="text-xs text-muted-foreground">3-7 dias</span>
+              <div className="flex items-center gap-3 p-4 bg-secondary rounded-xl">
+                <Clock className="w-6 h-6 text-accent" />
+                <div>
+                  <p className="font-semibold text-sm">Entrega</p>
+                  <p className="text-xs text-muted-foreground">3-7 dias úteis</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-secondary rounded-xl">
+                <RotateCcw className="w-6 h-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-sm">Troca Fácil</p>
+                  <p className="text-xs text-muted-foreground">7 dias</p>
+                </div>
               </div>
             </div>
 
             {/* Stock Status */}
-            <div className="flex items-center gap-2 text-success">
-              <CheckCircle2 className="w-5 h-5" />
-              <span className="font-medium">Em estoque - Pronta entrega</span>
-            </div>
+            {product.inStock ? (
+              <div className="flex items-center gap-2 text-success font-medium">
+                <CheckCircle2 className="w-5 h-5" />
+                <span>Em estoque - Pronta entrega</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-destructive font-medium">
+                <Package className="w-5 h-5" />
+                <span>Produto indisponível no momento</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="specs" className="mt-12">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="specs">Especificações</TabsTrigger>
-            <TabsTrigger value="description">Descrição</TabsTrigger>
+        <Tabs defaultValue="specs" className="mt-16">
+          <TabsList className="w-full justify-start bg-secondary p-1 rounded-xl">
+            <TabsTrigger value="specs" className="rounded-lg px-6">Especificações</TabsTrigger>
+            <TabsTrigger value="description" className="rounded-lg px-6">Descrição</TabsTrigger>
           </TabsList>
-          <TabsContent value="specs" className="mt-6">
-            <Card className="p-6">
-              <h3 className="font-bold text-lg mb-4">Especificações Técnicas</h3>
-              <div className="grid md:grid-cols-2 gap-4">
+          <TabsContent value="specs" className="mt-8">
+            <Card className="p-8">
+              <h3 className="font-bold text-xl mb-6">Especificações Técnicas</h3>
+              <div className="grid md:grid-cols-2 gap-x-12 gap-y-4">
                 {product.specifications && Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-3 border-b border-border">
+                  <div key={key} className="flex justify-between py-4 border-b border-border">
                     <span className="text-muted-foreground">{key}</span>
-                    <span className="font-medium">{value}</span>
+                    <span className="font-semibold">{value}</span>
                   </div>
                 ))}
               </div>
             </Card>
           </TabsContent>
-          <TabsContent value="description" className="mt-6">
-            <Card className="p-6">
-              <h3 className="font-bold text-lg mb-4">Descrição do Produto</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {product.description}
-              </p>
-              <p className="text-muted-foreground leading-relaxed mt-4">
-                Todos os nossos produtos possuem certificado de calibração rastreável ao INMETRO, 
-                garantindo a qualidade e precisão das medições. A Tecnoiso é especializada em 
-                metrologia e calibração há mais de 20 anos, oferecendo soluções completas para 
-                sua empresa.
-              </p>
+          <TabsContent value="description" className="mt-8">
+            <Card className="p-8">
+              <h3 className="font-bold text-xl mb-6">Descrição do Produto</h3>
+              <div className="prose max-w-none text-muted-foreground">
+                <p className="leading-relaxed mb-4">{product.description}</p>
+                <p className="leading-relaxed">
+                  Todos os nossos produtos são originais de fábrica e passam por rigoroso controle de qualidade. 
+                  A Tecnoiso trabalha apenas com equipamentos de marcas reconhecidas no mercado de metrologia, 
+                  garantindo precisão e durabilidade. Oferecemos suporte técnico especializado e garantia de 12 meses 
+                  em todos os instrumentos.
+                </p>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <section className="mt-16">
-            <h2 className="text-2xl font-bold mb-6">Produtos Relacionados</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <section className="mt-20">
+            <h2 className="text-2xl font-bold mb-8">Produtos Relacionados</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
