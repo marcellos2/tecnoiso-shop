@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ShoppingCart, Search, Menu, Phone, User } from "lucide-react";
+import { ShoppingCart, Search, Menu, Phone, User, Heart, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -12,36 +12,41 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
+    <header className="sticky top-0 z-50 bg-card shadow-sm">
       {/* Top bar */}
-      <div className="bg-foreground text-background text-sm py-2">
+      <div className="bg-primary text-primary-foreground text-sm py-2">
         <div className="container flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4" />
-            <span>(47) 3438-3175</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Phone className="w-3.5 h-3.5" />
+              <span className="font-medium">(47) 3438-3175</span>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Joinville, SC</span>
+            </div>
           </div>
-          <span className="hidden md:block">Metrologia e Calibração com Excelência</span>
-          <span className="text-primary font-medium">Frete Grátis acima de R$ 500</span>
+          <span className="font-semibold">🚚 Frete Grátis acima de R$ 500</span>
         </div>
       </div>
 
       {/* Main header */}
       <div className="container py-4">
-        <div className="flex items-center gap-4 lg:gap-8">
+        <div className="flex items-center gap-6">
           {/* Mobile menu */}
           <Sheet>
             <SheetTrigger asChild className="lg:hidden">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="shrink-0">
                 <Menu className="w-6 h-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72">
+            <SheetContent side="left" className="w-80">
               <nav className="flex flex-col gap-4 mt-8">
-                <Link to="/" className="nav-link text-lg">Início</Link>
-                <Link to="/produtos" className="nav-link text-lg">Produtos</Link>
-                <Link to="/servicos" className="nav-link text-lg">Serviços</Link>
-                <Link to="/sobre" className="nav-link text-lg">Sobre</Link>
-                <Link to="/contato" className="nav-link text-lg">Contato</Link>
+                <Link to="/" className="text-lg font-medium hover:text-primary transition-colors">Início</Link>
+                <Link to="/produtos" className="text-lg font-medium hover:text-primary transition-colors">Produtos</Link>
+                <Link to="/categorias" className="text-lg font-medium hover:text-primary transition-colors">Categorias</Link>
+                <Link to="/ofertas" className="text-lg font-medium hover:text-primary transition-colors">Ofertas</Link>
+                <Link to="/contato" className="text-lg font-medium hover:text-primary transition-colors">Contato</Link>
               </nav>
             </SheetContent>
           </Sheet>
@@ -52,37 +57,40 @@ export function Header() {
           </Link>
 
           {/* Search */}
-          <div className="hidden md:flex flex-1 max-w-2xl relative">
+          <div className="hidden md:flex flex-1 max-w-xl relative">
             <Input
               type="text"
-              placeholder="Buscar produtos, serviços..."
+              placeholder="O que você está procurando?"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input pr-12"
+              className="search-input pr-14"
             />
             <Button 
               size="icon" 
-              className="absolute right-1 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary/90"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg"
             >
               <Search className="w-4 h-4" />
             </Button>
           </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-8">
             <Link to="/" className="nav-link">Início</Link>
             <Link to="/produtos" className="nav-link">Produtos</Link>
-            <Link to="/servicos" className="nav-link">Serviços</Link>
-            <Link to="/contato" className="nav-link">Contato</Link>
+            <Link to="/categorias" className="nav-link">Categorias</Link>
+            <Link to="/ofertas" className="nav-link text-accent font-semibold">Ofertas</Link>
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 ml-auto lg:ml-0">
-            <Button variant="ghost" size="icon" className="hidden md:flex">
+          <div className="flex items-center gap-1 ml-auto">
+            <Button variant="ghost" size="icon" className="hidden md:flex hover:text-primary">
+              <Heart className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="hidden md:flex hover:text-primary">
               <User className="w-5 h-5" />
             </Button>
             <Link to="/carrinho">
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative hover:text-primary">
                 <ShoppingCart className="w-5 h-5" />
                 {totalItems > 0 && (
                   <span className="cart-badge">{totalItems}</span>
@@ -96,14 +104,14 @@ export function Header() {
         <div className="mt-4 md:hidden relative">
           <Input
             type="text"
-            placeholder="Buscar produtos..."
+            placeholder="O que você está procurando?"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input pr-12"
           />
           <Button 
             size="icon" 
-            className="absolute right-1 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary/90"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg"
           >
             <Search className="w-4 h-4" />
           </Button>
