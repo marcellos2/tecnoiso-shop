@@ -101,7 +101,7 @@ const Header = () => {
                 onError={(e) => e.currentTarget.style.display = 'none'}
               />
               <div className="text-xs">
-                <p className="font-semibold text-gray-800">R$ 49,90</p>
+                <p className="font-semibold text-gray-800"></p>
               </div>
             </div>
 
@@ -152,14 +152,8 @@ const Header = () => {
             <Link to="/" className="hover:text-blue-600 transition-colors">
               Supermercado
             </Link>
-            <Link to="/" className="hover:text-blue-600 transition-colors">
-              Moda
-            </Link>
             <Link to="/" className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full hover:shadow-lg transition-all text-xs font-medium">
               <span>Mercado Play</span>
-            </Link>
-            <Link to="/" className="hover:text-blue-600 transition-colors">
-              Vender
             </Link>
             
             <div className="flex items-center gap-4 ml-auto text-xs text-gray-600">
