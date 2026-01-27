@@ -2,17 +2,18 @@ import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { products } from '@/data/products';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
 const bannerSlides = [
   {
     id: 1,
-    title: 'FESTIVAL DE',
-    subtitle: 'EQUIPAMENTOS',
+    title: 'PRECISÃO',
+    subtitle: 'INDUSTRIAL',
     highlight: 'ATÉ 40% OFF',
     badge: 'FRETE GRÁTIS',
-    badgeDetail: 'A PARTIR DE R$ 500',
-    bgColor: 'from-blue-600 to-blue-800',
-    image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&h=400&fit=crop&auto=format',
+    badgeDetail: 'ACIMA DE R$ 500',
+    bgImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1920&h=600&fit=crop&auto=format',
   },
   {
     id: 2,
@@ -21,18 +22,16 @@ const bannerSlides = [
     highlight: 'LANÇAMENTO',
     badge: 'GARANTIA',
     badgeDetail: '12 MESES',
-    bgColor: 'from-gray-700 to-gray-900',
-    image: 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?w=600&h=400&fit=crop&auto=format',
+    bgImage: 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?w=1920&h=600&fit=crop&auto=format',
   },
   {
     id: 3,
     title: 'CALIBRAÇÃO',
-    subtitle: 'PROFISSIONAL',
-    highlight: 'CERTIFICADO RBC',
-    badge: 'PRECISÃO',
+    subtitle: 'CERTIFICADA',
+    highlight: 'RBC/INMETRO',
+    badge: 'QUALIDADE',
     badgeDetail: 'GARANTIDA',
-    bgColor: 'from-emerald-600 to-emerald-800',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop&auto=format',
+    bgImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&h=600&fit=crop&auto=format',
   },
 ];
 
@@ -59,41 +58,46 @@ const HeroCarousel = () => {
   );
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden bg-foreground">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {bannerSlides.map((slide) => (
             <div key={slide.id} className="flex-[0_0_100%] min-w-0">
-              <div className={`relative h-[350px] md:h-[400px] bg-gradient-to-r ${slide.bgColor}`}>
-                {/* Background Image */}
+              <div className="relative h-[400px] md:h-[500px]">
+                {/* Background Image with Overlay */}
                 <div 
-                  className="absolute inset-0 bg-cover bg-center opacity-30"
-                  style={{ backgroundImage: `url(${slide.image})` }}
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${slide.bgImage})` }}
                 />
+                <div className="absolute inset-0 bg-gradient-to-r from-foreground via-foreground/90 to-foreground/40" />
                 
                 <div className="container h-full flex items-center relative z-10">
-                  <div className="max-w-xl text-white">
-                    <p className="text-lg md:text-xl font-medium mb-1">{slide.title}</p>
-                    <h2 className="text-4xl md:text-6xl font-black mb-4">{slide.subtitle}</h2>
-                    
+                  <div className="max-w-xl text-background">
                     <div className="flex gap-3 mb-4">
-                      <div className="bg-white text-foreground px-4 py-2 rounded font-bold text-sm md:text-base">
+                      <span className="bg-accent text-accent-foreground px-3 py-1 text-xs font-bold rounded">
                         {slide.highlight}
-                      </div>
-                      <div className="bg-success text-white px-4 py-2 rounded text-sm md:text-base">
-                        <div className="font-bold">{slide.badge}</div>
-                        <div className="text-xs">{slide.badgeDetail}</div>
-                      </div>
+                      </span>
+                      <span className="bg-background text-foreground px-3 py-1 text-xs font-medium rounded">
+                        {slide.badge} {slide.badgeDetail}
+                      </span>
                     </div>
+                    
+                    <p className="text-lg md:text-xl font-light mb-1 text-background/80">{slide.title}</p>
+                    <h2 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">{slide.subtitle}</h2>
+                    
+                    <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2">
+                      Ver Ofertas
+                      <ArrowRight className="w-5 h-5" />
+                    </Button>
                   </div>
 
                   {/* Product images on right */}
-                  <div className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 gap-4">
+                  <div className="hidden lg:flex absolute right-8 top-1/2 -translate-y-1/2 gap-4">
                     {products.slice(0, 3).map((product, i) => (
                       <div
                         key={product.id}
-                        className="w-32 h-32 bg-white rounded-lg shadow-xl p-2 transform rotate-3"
-                        style={{ transform: `rotate(${(i - 1) * 5}deg)` }}
+                        className="w-36 h-36 bg-background rounded-lg shadow-2xl p-3"
+                        style={{ transform: `translateY(${(i - 1) * 20}px)` }}
                       >
                         <img
                           src={product.image}
@@ -111,13 +115,13 @@ const HeroCarousel = () => {
       </div>
 
       {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
         {bannerSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => scrollTo(index)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              index === selectedIndex ? 'bg-white w-6' : 'bg-white/50'
+            className={`h-2 rounded-full transition-all ${
+              index === selectedIndex ? 'bg-accent w-8' : 'bg-background/50 w-2'
             }`}
           />
         ))}

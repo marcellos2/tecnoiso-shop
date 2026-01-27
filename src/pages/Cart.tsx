@@ -201,9 +201,11 @@ export default function Cart() {
               )}
             </Card>
 
-            <Button className="w-full h-12 text-lg font-semibold">
-              Finalizar Compra
-            </Button>
+            <Link to="/checkout">
+              <Button className="w-full h-12 text-lg font-semibold bg-accent hover:bg-accent/90">
+                Finalizar Compra
+              </Button>
+            </Link>
 
             <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
