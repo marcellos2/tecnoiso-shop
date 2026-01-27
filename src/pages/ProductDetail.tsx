@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/contexts/CartContext";
 import { products } from "@/data/products";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { useState } from "react";
 

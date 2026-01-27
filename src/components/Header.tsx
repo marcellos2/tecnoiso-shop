@@ -1,122 +1,115 @@
-import { Link } from "react-router-dom";
-import { ShoppingCart, Search, Menu, Phone, User, Heart, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useCart } from "@/contexts/CartContext";
-import logo from "@/assets/logo.png";
-import { useState } from "react";
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Search, ShoppingCart, MapPin, ChevronDown, X } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
+import { CartSidebar } from './CartSidebar';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import logo from '@/assets/logo.png';
 
-export function Header() {
+const Header = () => {
   const { totalItems } = useCart();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const navLinks = [
+    { name: 'Categorias', href: '/', hasDropdown: true },
+    { name: 'Ofertas', href: '/' },
+    { name: 'Cupons', href: '/' },
+    { name: 'Contato', href: '/' },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 bg-card shadow-sm">
-      {/* Top bar */}
-      <div className="bg-primary text-primary-foreground text-sm py-2">
-        <div className="container flex justify-between items-center">
+    <>
+      {/* Main Header - Yellow background like ML */}
+      <header className="bg-[#ffe600] sticky top-0 z-40">
+        <div className="container py-3">
+          {/* Top Row */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Phone className="w-3.5 h-3.5" />
-              <span className="font-medium">(47) 3438-3175</span>
+            {/* Logo */}
+            <Link to="/" className="flex-shrink-0">
+              <img src={logo} alt="Tecnoiso" className="h-10" />
+            </Link>
+
+            {/* Search Bar */}
+            <div className="flex-1 max-w-3xl">
+              <div className="flex bg-white rounded shadow-sm">
+                <input
+                  type="text"
+                  placeholder="Buscar produtos, marcas e muito mais..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none rounded-l"
+                />
+                <button className="px-4 bg-white border-l border-border hover:bg-muted transition-colors rounded-r">
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
             </div>
-            <div className="hidden md:flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5" />
-              <span>Joinville, SC</span>
-            </div>
-          </div>
-          <span className="font-semibold">🚚 Frete Grátis acima de R$ 500</span>
-        </div>
-      </div>
 
-      {/* Main header */}
-      <div className="container py-4">
-        <div className="flex items-center gap-6">
-          {/* Mobile menu */}
-          <Sheet>
-            <SheetTrigger asChild className="lg:hidden">
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <Menu className="w-6 h-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80">
-              <nav className="flex flex-col gap-4 mt-8">
-                <Link to="/" className="text-lg font-medium hover:text-primary transition-colors">Início</Link>
-                <Link to="/produtos" className="text-lg font-medium hover:text-primary transition-colors">Produtos</Link>
-                <Link to="/categorias" className="text-lg font-medium hover:text-primary transition-colors">Categorias</Link>
-                <Link to="/ofertas" className="text-lg font-medium hover:text-primary transition-colors">Ofertas</Link>
-                <Link to="/contato" className="text-lg font-medium hover:text-primary transition-colors">Contato</Link>
-              </nav>
-            </SheetContent>
-          </Sheet>
-
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
-            <img src={logo} alt="Tecnoiso" className="h-10 md:h-12" />
-          </Link>
-
-          {/* Search */}
-          <div className="hidden md:flex flex-1 max-w-xl relative">
-            <Input
-              type="text"
-              placeholder="O que você está procurando?"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input pr-14"
-            />
-            <Button 
-              size="icon" 
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg"
-            >
-              <Search className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-8">
-            <Link to="/" className="nav-link">Início</Link>
-            <Link to="/produtos" className="nav-link">Produtos</Link>
-            <Link to="/categorias" className="nav-link">Categorias</Link>
-            <Link to="/ofertas" className="nav-link text-accent font-semibold">Ofertas</Link>
-          </nav>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1 ml-auto">
-            <Button variant="ghost" size="icon" className="hidden md:flex hover:text-primary">
-              <Heart className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="hidden md:flex hover:text-primary">
-              <User className="w-5 h-5" />
-            </Button>
-            <Link to="/carrinho">
-              <Button variant="ghost" size="icon" className="relative hover:text-primary">
-                <ShoppingCart className="w-5 h-5" />
+            {/* Right Section */}
+            <div className="hidden md:flex items-center gap-6 text-foreground text-sm">
+              <Link to="/" className="hover:underline">Crie sua conta</Link>
+              <Link to="/" className="hover:underline">Entre</Link>
+              <Link to="/" className="hover:underline">Compras</Link>
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="relative"
+              >
+                <ShoppingCart className="w-6 h-6" />
                 {totalItems > 0 && (
-                  <span className="cart-badge">{totalItems}</span>
+                  <span className="absolute -top-2 -right-2 bg-foreground text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    {totalItems}
+                  </span>
                 )}
-              </Button>
+              </button>
+            </div>
+          </div>
+
+          {/* Location & Nav Row */}
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center gap-1 text-xs text-foreground/80">
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Informe seu</span>
+              <span className="font-medium underline cursor-pointer">CEP</span>
+            </div>
+
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="text-sm text-foreground/80 hover:text-foreground flex items-center gap-0.5"
+                >
+                  {link.name}
+                  {link.hasDropdown && <ChevronDown className="w-3 h-3" />}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Cart Sheet */}
+      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <SheetContent className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Carrinho</SheetTitle>
+          </SheetHeader>
+          <div className="mt-6">
+            <CartSidebar />
+          </div>
+          <div className="mt-6">
+            <Link to="/cart" onClick={() => setIsCartOpen(false)}>
+              <button className="w-full bg-[#3483fa] text-white py-3 rounded font-semibold hover:bg-[#3483fa]/90 transition-colors">
+                Finalizar compra
+              </button>
             </Link>
           </div>
-        </div>
-
-        {/* Mobile search */}
-        <div className="mt-4 md:hidden relative">
-          <Input
-            type="text"
-            placeholder="O que você está procurando?"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input pr-12"
-          />
-          <Button 
-            size="icon" 
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg"
-          >
-            <Search className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    </header>
+        </SheetContent>
+      </Sheet>
+    </>
   );
-}
+};
+
+export default Header;

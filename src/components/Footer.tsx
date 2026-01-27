@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Linkedin, CreditCard, QrCode, ShieldCheck } from "lucide-react";
 import logo from "@/assets/logo.png";
 
-export function Footer() {
+export default function Footer() {
   return (
     <footer className="bg-foreground text-background">
       <div className="container py-16">
