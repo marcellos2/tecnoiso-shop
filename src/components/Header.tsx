@@ -29,7 +29,7 @@ const Header = () => {
             <div className="flex items-center gap-3">
               {/* Mobile Menu */}
               <Sheet>
-                <SheetTrigger className="md:hidden p-2 hover:bg-yellow-200 rounded transition-colors">
+                <SheetTrigger className="md:hidden p-2 hover:bg-gray-100 rounded transition-colors">
                   <Menu className="w-5 h-5" />
                 </SheetTrigger>
                 <SheetContent side="left" className="bg-background">
@@ -67,7 +67,7 @@ const Header = () => {
               </Link>
 
               {/* Localização - Desktop */}
-              <button className="hidden md:flex items-center gap-1 text-xs hover:bg-yellow-200 px-2 py-1 rounded transition-colors">
+              <button className="hidden md:flex items-center gap-1 text-xs hover:bg-gray-100 px-2 py-1 rounded transition-colors">
                 <MapPin size={14} className="text-gray-600" />
                 <div className="text-left">
                   <p className="text-[10px] text-gray-600 leading-none">Enviar para</p>
@@ -123,7 +123,7 @@ const Header = () => {
               {/* Carrinho */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="relative p-2 hover:bg-yellow-200 rounded transition-colors"
+                className="relative p-2 hover:bg-gray-100 rounded transition-colors"
               >
                 <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
                 {totalItems > 0 && (
@@ -165,8 +165,8 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Barra de Busca Mobile */}
-      <div className="md:hidden bg-[#FFF159] px-4 pb-3">
+      {/* Barra de Busca Mobile - CORRIGIDO: Removido bg-[#FFF159] */}
+      <div className="md:hidden bg-white px-4 pb-3 border-b border-gray-200">
         <div className="flex rounded-sm shadow-sm overflow-hidden bg-white">
           <input
             type="text"
