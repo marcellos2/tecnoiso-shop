@@ -39,24 +39,14 @@ const ProductCarousel = () => {
   const displayProducts = products.slice(0, 8);
 
   return (
-    <section className="container py-8">
-      <div className="flex items-center justify-between mb-4">
+    <section className="container py-10">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-foreground">Ofertas</h2>
-          <Link to="/" className="text-sm text-[#3483fa] hover:underline">
-            Mostrar todas as ofertas
-          </Link>
+          <h2 className="text-2xl font-bold text-foreground">Ofertas do Dia</h2>
         </div>
-        
-        {/* Pagination Dots */}
-        <div className="hidden md:flex items-center gap-1">
-          {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-[#3483fa]' : 'bg-border'}`}
-            />
-          ))}
-        </div>
+        <Link to="/" className="text-sm text-accent font-medium hover:underline">
+          Ver todas as ofertas →
+        </Link>
       </div>
 
       <div className="relative">
@@ -70,24 +60,24 @@ const ProductCarousel = () => {
               return (
                 <div
                   key={product.id}
-                  className="flex-[0_0_180px] md:flex-[0_0_200px] min-w-0"
+                  className="flex-[0_0_200px] md:flex-[0_0_220px] min-w-0"
                 >
-                  <Link to={`/product/${product.id}`}>
-                    <div className="bg-white border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                  <Link to={`/produto/${product.id}`}>
+                    <div className="bg-background border border-border rounded-lg overflow-hidden hover:shadow-lg hover:border-accent/30 transition-all group">
                       <div className="relative aspect-square bg-muted p-4">
                         <img
                           src={product.image}
                           alt={product.name}
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                         />
                         {discountPercent > 0 && (
-                          <span className="absolute top-2 left-2 bg-success text-white text-xs font-bold px-2 py-1 rounded">
-                            {discountPercent}% OFF
+                          <span className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded">
+                            -{discountPercent}%
                           </span>
                         )}
                       </div>
-                      <div className="p-3">
-                        <h3 className="text-sm text-foreground line-clamp-2 mb-2 min-h-[40px]">
+                      <div className="p-4">
+                        <h3 className="text-sm text-foreground line-clamp-2 mb-3 min-h-[40px]">
                           {product.name}
                         </h3>
                         {product.originalPrice && (
@@ -95,13 +85,13 @@ const ProductCarousel = () => {
                             {formatPrice(product.originalPrice)}
                           </p>
                         )}
-                        <p className="text-xl font-semibold text-foreground">
+                        <p className="text-xl font-bold text-foreground">
                           {formatPrice(product.price)}
                         </p>
-                        <p className="text-xs text-success font-medium mt-1">
+                        <p className="text-xs text-accent font-medium mt-1">
                           em 12x sem juros
                         </p>
-                        <p className="text-xs text-success mt-1">Frete grátis</p>
+                        <p className="text-xs text-accent mt-1 font-medium">Frete grátis</p>
                       </div>
                     </div>
                   </Link>
@@ -115,7 +105,7 @@ const ProductCarousel = () => {
         {canScrollPrev && (
           <button
             onClick={scrollPrev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white border border-border rounded-full shadow-lg flex items-center justify-center hover:bg-muted transition-colors z-10"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-background border border-border rounded-full shadow-lg flex items-center justify-center hover:bg-muted transition-colors z-10"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -123,7 +113,7 @@ const ProductCarousel = () => {
         {canScrollNext && (
           <button
             onClick={scrollNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-white border border-border rounded-full shadow-lg flex items-center justify-center hover:bg-muted transition-colors z-10"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-background border border-border rounded-full shadow-lg flex items-center justify-center hover:bg-muted transition-colors z-10"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
