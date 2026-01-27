@@ -5,6 +5,13 @@ import { products } from '@/data/products';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
+// Importar as imagens
+import banner1 from '@/assets/banner1.jpg';
+import banner2 from '@/assets/banner2.jpg'
+import banner3 from '@/assets/banner3.jpg';
+import banner4 from '@/assets/banner4.jpg';
+import banner5 from '@/assets/banner5.jpg';
+
 const bannerSlides = [
   {
     id: 1,
@@ -13,7 +20,7 @@ const bannerSlides = [
     highlight: 'ATÉ 40% OFF',
     badge: 'FRETE GRÁTIS',
     badgeDetail: 'ACIMA DE R$ 500',
-    bgImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1920&h=600&fit=crop&auto=format',
+    bgImage: banner1,
   },
   {
     id: 2,
@@ -22,7 +29,7 @@ const bannerSlides = [
     highlight: 'LANÇAMENTO',
     badge: 'GARANTIA',
     badgeDetail: '12 MESES',
-    bgImage: 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?w=1920&h=600&fit=crop&auto=format',
+    bgImage: banner2,
   },
   {
     id: 3,
@@ -31,7 +38,25 @@ const bannerSlides = [
     highlight: 'RBC/INMETRO',
     badge: 'QUALIDADE',
     badgeDetail: 'GARANTIDA',
-    bgImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&h=600&fit=crop&auto=format',
+    bgImage: banner3,
+  },
+  {
+    id: 4,
+    title: 'EQUIPAMENTOS',
+    subtitle: 'PROFISSIONAIS',
+    highlight: 'NOVIDADE',
+    badge: 'ENTREGA',
+    badgeDetail: 'RÁPIDA',
+    bgImage: banner4,
+  },
+  {
+    id: 5,
+    title: 'MEDIÇÃO',
+    subtitle: 'PRECISA',
+    highlight: 'DESTAQUE',
+    badge: 'SUPORTE',
+    badgeDetail: 'TÉCNICO',
+    bgImage: banner5,
   },
 ];
 
