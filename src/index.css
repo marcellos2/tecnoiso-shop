@@ -6,35 +6,35 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 215 90% 45%;
+    --primary: 0 85% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 15% 93%;
-    --secondary-foreground: 215 25% 25%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
 
-    --muted: 210 15% 90%;
-    --muted-foreground: 215 15% 45%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 25 95% 53%;
+    --accent: 0 85% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 88%;
-    --input: 210 20% 88%;
-    --ring: 215 90% 45%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 85% 45%;
 
-    --radius: 0.75rem;
+    --radius: 0.25rem;
 
     --success: 152 76% 40%;
     --success-foreground: 0 0% 100%;
@@ -42,53 +42,53 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --sidebar-background: 215 25% 12%;
-    --sidebar-foreground: 210 15% 90%;
-    --sidebar-primary: 215 90% 50%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 0 85% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 20% 20%;
-    --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 215 20% 20%;
-    --sidebar-ring: 215 90% 50%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 0 85% 50%;
   }
 
   .dark {
-    --background: 215 25% 8%;
-    --foreground: 210 15% 95%;
+    --background: 0 0% 5%;
+    --foreground: 0 0% 95%;
 
-    --card: 215 25% 12%;
-    --card-foreground: 210 15% 95%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 215 25% 12%;
-    --popover-foreground: 210 15% 95%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 215 90% 55%;
+    --primary: 0 85% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 20% 18%;
-    --secondary-foreground: 210 15% 90%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 90%;
 
-    --muted: 215 20% 15%;
-    --muted-foreground: 210 15% 60%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 25 95% 55%;
+    --accent: 0 85% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 20%;
-    --input: 215 20% 20%;
-    --ring: 215 90% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 85% 50%;
 
-    --sidebar-background: 215 25% 6%;
-    --sidebar-foreground: 210 15% 90%;
-    --sidebar-primary: 215 90% 55%;
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 0 85% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 20% 15%;
-    --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 215 20% 15%;
-    --sidebar-ring: 215 90% 55%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 85% 50%;
   }
 }
 
@@ -109,24 +109,23 @@
 
 @layer components {
   .product-card {
-    @apply bg-card rounded-2xl border border-border overflow-hidden transition-all duration-300;
+    @apply bg-card border border-border overflow-hidden transition-all duration-200;
   }
 
   .product-card:hover {
-    @apply shadow-xl border-primary/20 -translate-y-2;
-    box-shadow: 0 20px 40px -15px hsl(var(--primary) / 0.15);
+    @apply shadow-lg border-border;
   }
 
   .badge-discount {
-    @apply bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full;
+    @apply bg-primary text-primary-foreground text-xs font-bold px-2 py-1;
   }
 
   .badge-new {
-    @apply bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full;
+    @apply bg-success text-success-foreground text-xs font-bold px-2 py-1;
   }
 
   .badge-category {
-    @apply bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full;
+    @apply bg-muted text-foreground text-xs font-semibold px-2 py-1;
   }
 
   .price-original {
@@ -134,7 +133,7 @@
   }
 
   .price-current {
-    @apply text-foreground font-extrabold text-2xl;
+    @apply text-primary font-bold text-lg;
   }
 
   .price-pix {
@@ -142,39 +141,27 @@
   }
 
   .nav-link {
-    @apply text-foreground/70 hover:text-primary transition-colors font-medium relative;
-  }
-
-  .nav-link::after {
-    @apply content-[''] absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300;
-  }
-
-  .nav-link:hover::after {
-    @apply w-full;
+    @apply text-white hover:text-white/80 transition-colors font-medium;
   }
 
   .cart-badge {
-    @apply absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse;
+    @apply absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center;
   }
 
   .search-input {
-    @apply w-full bg-card border border-border rounded-xl px-5 py-3 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all;
+    @apply w-full bg-white border border-border px-4 py-2 text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:border-primary transition-all;
   }
 
   .category-card {
-    @apply bg-card rounded-2xl p-6 border border-border hover:border-primary hover:shadow-lg transition-all cursor-pointer;
+    @apply bg-card p-4 border border-border hover:border-primary transition-all cursor-pointer;
   }
 
   .btn-pix {
     @apply bg-success text-success-foreground hover:bg-success/90;
   }
 
-  .gradient-hero {
-    background: linear-gradient(135deg, hsl(215 25% 12%) 0%, hsl(215 30% 20%) 50%, hsl(215 90% 35%) 100%);
-  }
-
-  .gradient-accent {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(215 90% 55%) 100%);
+  .section-title {
+    @apply text-lg font-bold text-foreground border-l-4 border-primary pl-3;
   }
 }
 
