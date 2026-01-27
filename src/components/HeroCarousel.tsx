@@ -83,7 +83,7 @@ const HeroCarousel = () => {
   );
 
   return (
-    <section className="relative overflow-hidden bg-foreground">
+    <section className="relative overflow-hidden">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {bannerSlides.map((slide) => (
@@ -139,8 +139,17 @@ const HeroCarousel = () => {
         </div>
       </div>
 
+      {/* Degradê de transição ULTRA SUAVE - múltiplas camadas para transição imperceptível */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 pointer-events-none z-20"
+        style={{
+          height: '200px',
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.03) 10%, rgba(255, 255, 255, 0.08) 20%, rgba(255, 255, 255, 0.15) 30%, rgba(255, 255, 255, 0.25) 40%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.6) 65%, rgba(255, 255, 255, 0.8) 80%, rgba(255, 255, 255, 0.95) 95%, rgb(255, 255, 255) 100%)'
+        }}
+      />
+
       {/* Dots */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
         {bannerSlides.map((_, index) => (
           <button
             key={index}
