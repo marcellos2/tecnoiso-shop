@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart, MapPin, ChevronDown, User, Heart, Menu } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
@@ -10,6 +10,20 @@ const Header = () => {
   const { totalItems } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
     { name: 'Categorias', href: '/', hasDropdown: true },
@@ -20,8 +34,8 @@ const Header = () => {
 
   return (
     <>
-      {/* Barra Superior - Estilo Mercado Livre */}
-      <div className="bg-[#ffffff]">
+      {/* Header Fixo no Topo */}
+      <div className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
         <div className="container">
           {/* Linha Principal */}
           <div className="flex items-center justify-between py-3 gap-4">
@@ -163,21 +177,21 @@ const Header = () => {
             </div>
           </nav>
         </div>
-      </div>
 
-      {/* Barra de Busca Mobile - CORRIGIDO: Removido bg-[#FFF159] */}
-      <div className="md:hidden bg-white px-4 pb-3 border-b border-gray-200">
-        <div className="flex rounded-sm shadow-sm overflow-hidden bg-white">
-          <input
-            type="text"
-            placeholder="Buscar produtos..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none"
-          />
-          <button className="px-3 bg-white border-l border-gray-200">
-            <Search className="w-4 h-4 text-gray-600" />
-          </button>
+        {/* Barra de Busca Mobile */}
+        <div className="md:hidden px-4 pb-3">
+          <div className="flex rounded-sm shadow-sm overflow-hidden bg-white">
+            <input
+              type="text"
+              placeholder="Buscar produtos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none"
+            />
+            <button className="px-3 bg-white border-l border-gray-200">
+              <Search className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
         </div>
       </div>
 

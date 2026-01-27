@@ -1,11 +1,11 @@
 import { Product, Category } from "@/types/product";
 
 // Importe suas imagens aqui - mesma pasta (src/data/)
-import manometro1 from "./manometro-1.jpg";
-import termometro1 from "./termometro-1.jpg";
-import balanca1 from "./balanca-1.jpg";
-import paquimetro1 from "./paquimetro-1.jpg";
-import multimetro1 from "./multimetro-1.jpg";
+import manometro1 from "./manometro-1.png";
+import termometro1 from "./termometro-1.png";
+import balanca1 from "./balanca-1.png";
+import paquimetro1 from "./paquimetro-1.png";
+import multimetro1 from "./multimetro-1.png";
 
 export const categories: Category[] = [
   { id: "manometros", name: "Manômetros", icon: "Gauge", productCount: 1 },

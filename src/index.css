@@ -210,3 +210,109 @@
     display: none;
   }
 }
+
+/* ========================================
+   HERO CAROUSEL - ESTILOS GLOBAIS
+   Adicionado para o carrossel estilo Mercado Livre
+   ======================================== */
+
+/* Remove espaços para o banner colar no topo */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Remove espaço inferior do header e garante que fique na frente */
+header {
+  margin-bottom: 0 !important;
+  position: relative;
+  z-index: 100 !important; /* Fica por cima do banner */
+}
+
+/* Garante que todos os elementos do header fiquem na frente */
+header * {
+  position: relative;
+  z-index: 100;
+}
+
+/* Logo, nav, e outros elementos do header */
+header nav,
+header .logo,
+header button,
+header a,
+header input {
+  z-index: 101 !important;
+}
+
+/* Remove espaço superior do main */
+main {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Remove padding do container principal se houver */
+.container-principal,
+.main-container,
+.app-content {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Otimizações de performance para animações do carrossel */
+.animate-float,
+[class*="transition-all"],
+[class*="transform"] {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scroll suave */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Previne zoom no mobile em inputs */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+/* Mobile extra pequeno (iPhone SE, etc) */
+@media (max-width: 375px) {
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+/* Remove gap entre seções */
+section + section,
+section + div {
+  margin-top: 0 !important;
+}
+
+/* Garante que o carrossel fique por trás do header */
+.hero-carousel {
+  position: relative;
+  z-index: 10;
+}
+
+/* Banner fica atrás de tudo */
+section[class*="hero"] {
+  position: relative;
+  z-index: 10;
+}

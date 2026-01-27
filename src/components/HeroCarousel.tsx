@@ -2,15 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { products } from '@/data/products';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-
-// Importar as imagens dos banners
-import banner1 from '@/assets/banner1.jpg';
-import banner2 from '@/assets/banner2.jpg';
-import banner3 from '@/assets/banner3.jpg';
-import banner4 from '@/assets/banner4.jpg';
-import banner5 from '@/assets/banner5.jpg';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const bannerSlides = [
   {
@@ -23,30 +16,6 @@ const bannerSlides = [
     bgColor: 'bg-gradient-to-br from-yellow-300 via-yellow-200 to-yellow-100',
     textColor: 'text-gray-900',
     products: products.slice(0, 3),
-    // Configurações únicas de animação para cada produto deste slide
-    productAnimations: [
-      {
-        size: 'w-48 h-48',
-        delay: '700ms',
-        initialTransform: 'translate-x-32 -translate-y-10 rotate-45 scale-50',
-        finalTransform: 'translate-y-[-40px]',
-        hover: 'hover:scale-125 hover:rotate-12',
-      },
-      {
-        size: 'w-56 h-56',
-        delay: '850ms',
-        initialTransform: 'translate-x-40 translate-y-20 -rotate-12 scale-75',
-        finalTransform: 'translate-y-[20px]',
-        hover: 'hover:scale-110 hover:-rotate-6',
-      },
-      {
-        size: 'w-44 h-44',
-        delay: '1000ms',
-        initialTransform: 'translate-x-24 -translate-y-32 rotate-90 scale-0',
-        finalTransform: 'translate-y-[-20px]',
-        hover: 'hover:scale-130 hover:rotate-[-8deg]',
-      },
-    ],
   },
   {
     id: 2,
@@ -56,31 +25,8 @@ const bannerSlides = [
     badge: 'GARANTIA',
     badgeDetail: '12 MESES',
     bgColor: 'bg-gradient-to-br from-blue-400 via-blue-300 to-blue-200',
-    textColor: 'text-white',
+    textColor: 'text-gray-900',
     products: products.slice(1, 4),
-    productAnimations: [
-      {
-        size: 'w-52 h-52',
-        delay: '650ms',
-        initialTransform: 'translate-x-[-40px] translate-y-40 -rotate-45 scale-90',
-        finalTransform: 'translate-y-[30px]',
-        hover: 'hover:scale-115 hover:rotate-3',
-      },
-      {
-        size: 'w-40 h-40',
-        delay: '800ms',
-        initialTransform: 'translate-x-48 -translate-y-24 rotate-180 scale-0',
-        finalTransform: 'translate-y-[-60px]',
-        hover: 'hover:scale-140 hover:-rotate-12',
-      },
-      {
-        size: 'w-60 h-60',
-        delay: '950ms',
-        initialTransform: 'translate-x-36 translate-y-16 rotate-[-30deg] scale-60',
-        finalTransform: 'translate-y-[10px]',
-        hover: 'hover:scale-105 hover:rotate-6',
-      },
-    ],
   },
   {
     id: 3,
@@ -90,38 +36,17 @@ const bannerSlides = [
     badge: 'ENTREGA',
     badgeDetail: 'RÁPIDA',
     bgColor: 'bg-gradient-to-br from-purple-400 via-purple-300 to-pink-200',
-    textColor: 'text-white',
+    textColor: 'text-gray-900',
     products: products.slice(0, 3),
-    productAnimations: [
-      {
-        size: 'w-36 h-36',
-        delay: '720ms',
-        initialTransform: 'translate-x-20 translate-y-[-50px] rotate-[135deg] scale-40',
-        finalTransform: 'translate-y-[-50px]',
-        hover: 'hover:scale-150 hover:rotate-[-15deg]',
-      },
-      {
-        size: 'w-64 h-64',
-        delay: '900ms',
-        initialTransform: 'translate-x-44 translate-y-32 -rotate-90 scale-80',
-        finalTransform: 'translate-y-[0px]',
-        hover: 'hover:scale-108 hover:rotate-9',
-      },
-      {
-        size: 'w-48 h-48',
-        delay: '780ms',
-        initialTransform: 'translate-x-28 -translate-y-40 rotate-[60deg] scale-55',
-        finalTransform: 'translate-y-[40px]',
-        hover: 'hover:scale-120 hover:rotate-[-20deg]',
-      },
-    ],
   },
 ];
 
 const HeroCarousel = () => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 5000, stopOnInteraction: false }),
-  ]);
+  const navigate = useNavigate();
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, duration: 30 },
+    [Autoplay({ delay: 5000, stopOnInteraction: false })]
+  );
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -151,200 +76,137 @@ const HeroCarousel = () => {
     [emblaApi]
   );
 
+  const handleProductClick = (productId: string) => {
+    navigate(`/produto/${productId}`);
+  };
+
   return (
     <section className="relative overflow-hidden">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
-          {bannerSlides.map((slide, slideIndex) => (
-            <div key={slide.id} className="flex-[0_0_100%] min-w-0">
-              <div className={`relative h-[400px] md:h-[500px] ${slide.bgColor}`}>
-                <div className="container h-full flex items-center justify-between relative z-10">
-                  {/* Lado Esquerdo - Texto Animado */}
-                  <div className={`max-w-xl ${slide.textColor}`}>
-                    {/* Badge Lojas Oficiais - Animado */}
-                    <div
-                      className={`inline-flex items-center gap-2 bg-white rounded-lg px-3 py-2 mb-4 shadow-lg transition-all duration-700 ${
-                        selectedIndex === slideIndex && !isAnimating
-                          ? 'translate-y-0 opacity-100'
-                          : '-translate-y-10 opacity-0'
-                      }`}
-                      style={{ transitionDelay: '100ms' }}
-                    >
-                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                          <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <span className="text-xs font-semibold text-blue-600">LOJAS OFICIAIS</span>
-                    </div>
-
-                    {/* Título - Animado */}
-                    <div className="mb-2 overflow-hidden">
-                      <h3
-                        className={`text-2xl md:text-3xl font-bold transition-all duration-700 ${
-                          selectedIndex === slideIndex && !isAnimating
-                            ? 'translate-x-0 opacity-100'
-                            : '-translate-x-10 opacity-0'
-                        }`}
-                        style={{ transitionDelay: '200ms' }}
-                      >
-                        {slide.title}
-                      </h3>
-                    </div>
-
-                    {/* Subtítulo - Animado */}
-                    <div className="mb-6 overflow-hidden">
-                      <h2
-                        className={`text-5xl md:text-7xl font-black transition-all duration-700 ${
-                          selectedIndex === slideIndex && !isAnimating
-                            ? 'translate-x-0 opacity-100'
-                            : '-translate-x-10 opacity-0'
-                        }`}
-                        style={{ transitionDelay: '300ms' }}
-                      >
-                        {slide.subtitle}
-                      </h2>
-                    </div>
-
-                    {/* Badges de Oferta - Animados */}
-                    <div className="flex gap-3 mb-6">
-                      <span
-                        className={`bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg transition-all duration-700 ${
-                          selectedIndex === slideIndex && !isAnimating
-                            ? 'translate-y-0 opacity-100 scale-100'
-                            : 'translate-y-10 opacity-0 scale-95'
-                        }`}
-                        style={{ transitionDelay: '400ms' }}
-                      >
-                        {slide.highlight}
-                      </span>
-                      <span
-                        className={`bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-lg transition-all duration-700 ${
-                          selectedIndex === slideIndex && !isAnimating
-                            ? 'translate-y-0 opacity-100 scale-100'
-                            : 'translate-y-10 opacity-0 scale-95'
-                        }`}
-                        style={{ transitionDelay: '500ms' }}
-                      >
-                        {slide.badge} {slide.badgeDetail}
-                      </span>
-                    </div>
-
-                    {/* Disclaimer - Animado */}
-                    <p
-                      className={`text-xs mb-6 opacity-80 transition-all duration-700 ${
-                        selectedIndex === slideIndex && !isAnimating
-                          ? 'translate-y-0 opacity-80'
-                          : 'translate-y-10 opacity-0'
-                      }`}
-                      style={{ transitionDelay: '600ms' }}
-                    >
-                      *Consulte Termos e Condições. Imagens ilustrativas.
-                    </p>
+          {bannerSlides.map((slide, slideIndex) => {
+            const isActive = selectedIndex === slideIndex;
+            
+            return (
+              <div key={slide.id} className="flex-[0_0_100%] min-w-0">
+                <div className={`relative ${slide.bgColor} overflow-hidden`} style={{ paddingTop: '280px', paddingBottom: '80px' }}>
+                  {/* Background decorations */}
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className={`absolute -top-20 -right-20 w-64 h-64 md:w-96 md:h-96 rounded-full bg-white/10 transition-all duration-[2000ms] ease-out ${isActive ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} style={{ transitionDelay: '200ms' }} />
+                    <div className={`absolute top-1/2 -left-20 md:-left-32 w-48 h-48 md:w-80 md:h-80 rounded-full bg-white/5 transition-all duration-[2000ms] ease-out ${isActive ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} style={{ transitionDelay: '400ms' }} />
                   </div>
 
-                  {/* Lado Direito - Produtos com Animações ÚNICAS */}
-                  <div className="hidden lg:flex items-center justify-end gap-4 relative w-[600px] h-full">
-                    {slide.products.map((product, idx) => {
-                      const animation = slide.productAnimations[idx];
-                      return (
-                        <div
-                          key={product.id}
-                          className={`absolute transition-all duration-[1200ms] ease-out ${animation.size} ${animation.hover} ${
-                            selectedIndex === slideIndex && !isAnimating
-                              ? `translate-x-0 opacity-100 scale-100 rotate-0`
-                              : `opacity-0 ${animation.initialTransform}`
-                          }`}
-                          style={{
-                            transitionDelay: animation.delay,
-                            right: `${idx * 150 + 20}px`,
-                            transform: selectedIndex === slideIndex && !isAnimating
-                              ? animation.finalTransform
-                              : undefined,
-                          }}
-                        >
-                          <div className="w-full h-full bg-white rounded-2xl shadow-2xl p-4 transition-transform duration-300">
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="w-full h-full object-contain"
-                            />
+                  <div className="container relative z-10 px-4 sm:px-6 md:px-8">
+                    <div className="flex items-center justify-between">
+                      {/* Content */}
+                      <div className={`max-w-[300px] sm:max-w-md md:max-w-xl ${slide.textColor}`}>
+                        <div className={`inline-flex items-center gap-1.5 md:gap-2 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 md:px-4 md:py-2 mb-3 md:mb-4 shadow-lg transition-all duration-700 ease-out ${isActive && !isAnimating ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-10 opacity-0 scale-90'}`} style={{ transitionDelay: '100ms' }}>
+                          <div className="w-4 h-4 md:w-5 md:h-5 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                            <svg className="w-2.5 h-2.5 md:w-3 md:h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                          </div>
+                          <span className="text-[10px] md:text-xs font-bold text-blue-600">LOJAS OFICIAIS</span>
+                        </div>
+
+                        <div className="mb-1.5 md:mb-2 overflow-hidden">
+                          <h3 className={`text-base sm:text-xl md:text-2xl lg:text-3xl font-bold transform transition-all duration-700 drop-shadow-md ${isActive && !isAnimating ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`} style={{ transitionDelay: '200ms' }}>{slide.title}</h3>
+                        </div>
+
+                        <div className="mb-3 md:mb-5 overflow-hidden">
+                          <h2 className={`text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black transform transition-all duration-700 leading-none drop-shadow-lg ${isActive && !isAnimating ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`} style={{ transitionDelay: '300ms' }}>{slide.subtitle}</h2>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 md:gap-3 mb-3 md:mb-4">
+                          <span className={`bg-blue-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] md:text-sm font-bold shadow-xl transform transition-all duration-700 ${isActive && !isAnimating ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95'}`} style={{ transitionDelay: '400ms' }}>{slide.highlight}</span>
+                          <span className={`bg-white text-gray-900 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] md:text-sm font-bold shadow-xl transform transition-all duration-700 ${isActive && !isAnimating ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95'}`} style={{ transitionDelay: '500ms' }}>{slide.badge} {slide.badgeDetail}</span>
+                        </div>
+
+                        <p className={`text-[9px] md:text-[10px] mb-2 opacity-80 drop-shadow-md transform transition-all duration-700 ${isActive && !isAnimating ? 'translate-y-0 opacity-80' : 'translate-y-10 opacity-0'}`} style={{ transitionDelay: '600ms' }}>*Consulte Termos e Condições. Imagens ilustrativas.</p>
+                      </div>
+
+                      {/* Products - Desktop */}
+                      <div className="hidden lg:flex items-center justify-end relative" style={{ width: '500px', height: '300px' }}>
+                        {slide.products.map((product, idx) => {
+                          const animations = [
+                            {size: 'w-40 h-40 xl:w-48 xl:h-48', delay: '700ms', initialY: -100, initialX: 80, initialRotate: 25, finalY: -30, finalRotate: -5},
+                            {size: 'w-48 h-48 xl:w-56 xl:h-56', delay: '850ms', initialY: 100, initialX: 100, initialRotate: -35, finalY: 20, finalRotate: 3},
+                            {size: 'w-36 h-36 xl:w-44 xl:h-44', delay: '1000ms', initialY: -80, initialX: 120, initialRotate: 45, finalY: -15, finalRotate: -8}
+                          ];
+                          const anim = animations[idx];
+                          return (
+                            <div 
+                              key={product.id} 
+                              onClick={() => handleProductClick(product.id)} 
+                              className={`absolute ${anim.size} transition-all duration-[1200ms] ease-out cursor-pointer group`} 
+                              style={{
+                                right: `${idx * 130 + 30}px`,
+                                transitionDelay: anim.delay,
+                                transform: isActive && !isAnimating 
+                                  ? `translateY(${anim.finalY}px) rotate(${anim.finalRotate}deg) scale(1)` 
+                                  : `translateY(${anim.initialY}px) translateX(${anim.initialX}px) rotate(${anim.initialRotate}deg) scale(0.3)`,
+                                opacity: isActive && !isAnimating ? 1 : 0
+                              }}
+                            >
+                              <div className="w-full h-full p-3 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                                <img 
+                                  src={product.image} 
+                                  alt={product.name} 
+                                  className="w-full h-full object-contain pointer-events-none drop-shadow-[0_15px_35px_rgba(0,0,0,0.3)] group-hover:drop-shadow-[0_20px_45px_rgba(0,0,0,0.4)] transition-all" 
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Products - Mobile */}
+                      <div className="lg:hidden absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44">
+                        <div className={`w-full h-full transform transition-all duration-1000 ease-out ${isActive && !isAnimating ? 'translate-y-0 rotate-0 scale-100 opacity-100' : 'translate-y-20 rotate-45 scale-50 opacity-0'}`} style={{ transitionDelay: '500ms' }}>
+                          <div onClick={() => handleProductClick(slide.products[1]?.id || slide.products[0]?.id)} className="w-full h-full p-2 sm:p-3 animate-float cursor-pointer active:scale-95 transition-all">
+                            <img src={slide.products[1]?.image || slide.products[0]?.image} alt={slide.products[1]?.name || slide.products[0]?.name} className="w-full h-full object-contain drop-shadow-[0_15px_35px_rgba(0,0,0,0.3)]" />
                           </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Degradê de transição ULTRA SUAVE */}
-      <div 
-        className="absolute bottom-0 left-0 right-0 pointer-events-none z-20"
-        style={{
-          height: '250px',
-          background: `
-            linear-gradient(
-              to bottom,
-              transparent 0%,
-              hsl(var(--background) / 0.01) 5%,
-              hsl(var(--background) / 0.02) 10%,
-              hsl(var(--background) / 0.04) 15%,
-              hsl(var(--background) / 0.07) 20%,
-              hsl(var(--background) / 0.11) 25%,
-              hsl(var(--background) / 0.16) 30%,
-              hsl(var(--background) / 0.22) 35%,
-              hsl(var(--background) / 0.29) 40%,
-              hsl(var(--background) / 0.37) 45%,
-              hsl(var(--background) / 0.46) 50%,
-              hsl(var(--background) / 0.55) 55%,
-              hsl(var(--background) / 0.64) 60%,
-              hsl(var(--background) / 0.73) 65%,
-              hsl(var(--background) / 0.81) 70%,
-              hsl(var(--background) / 0.88) 75%,
-              hsl(var(--background) / 0.93) 80%,
-              hsl(var(--background) / 0.96) 85%,
-              hsl(var(--background) / 0.98) 90%,
-              hsl(var(--background) / 0.99) 95%,
-              hsl(var(--background) / 1) 100%
-            )
-          `,
-          backdropFilter: 'blur(0.5px)'
-        }}
-      />
+      {/* Gradient overlay at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-20" style={{height: '140px', background: `linear-gradient(to bottom, transparent 0%, hsl(var(--background) / 0.02) 10%, hsl(var(--background) / 0.08) 20%, hsl(var(--background) / 0.18) 30%, hsl(var(--background) / 0.32) 40%, hsl(var(--background) / 0.50) 50%, hsl(var(--background) / 0.68) 60%, hsl(var(--background) / 0.82) 70%, hsl(var(--background) / 0.92) 80%, hsl(var(--background) / 0.97) 90%, hsl(var(--background) / 1) 100%)`}} />
 
-      {/* Botões de Navegação */}
-      <button
-        onClick={scrollPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-30 hover:scale-110"
-      >
-        <ChevronLeft className="w-6 h-6 text-gray-800" />
+      {/* Navigation buttons */}
+      <button onClick={scrollPrev} className="absolute left-2 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-xl transition-all z-30 hover:scale-110 active:scale-95 backdrop-blur-sm" aria-label="Slide anterior">
+        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-800" />
       </button>
-      <button
-        onClick={scrollNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-30 hover:scale-110"
-      >
-        <ChevronRight className="w-6 h-6 text-gray-800" />
+      <button onClick={scrollNext} className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-xl transition-all z-30 hover:scale-110 active:scale-95 backdrop-blur-sm" aria-label="Próximo slide">
+        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-800" />
       </button>
 
-      {/* Dots Indicadores */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+      {/* Dots indicator */}
+      <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2 z-30">
         {bannerSlides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollTo(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              index === selectedIndex
-                ? 'bg-blue-600 w-8 shadow-lg'
-                : 'bg-white/70 w-2 hover:bg-white'
-            }`}
+          <button 
+            key={index} 
+            onClick={() => scrollTo(index)} 
+            className={`h-1.5 md:h-2 rounded-full transition-all duration-500 ease-out ${index === selectedIndex ? 'bg-blue-600 w-6 md:w-10 shadow-lg shadow-blue-500/50' : 'bg-white/80 w-1.5 md:w-2 hover:bg-white hover:w-3 md:hover:w-4'}`} 
+            aria-label={`Ir para slide ${index + 1}`} 
           />
         ))}
       </div>
+
+      <style>{`
+        @keyframes float { 
+          0%, 100% { transform: translateY(0px) rotate(0deg); } 
+          50% { transform: translateY(-12px) rotate(2deg); } 
+        } 
+        .animate-float { 
+          animation: float 3s ease-in-out infinite; 
+        }
+      `}</style>
     </section>
   );
 };
