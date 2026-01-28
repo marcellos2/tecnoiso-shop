@@ -127,13 +127,13 @@ const Header = () => {
             <div className="flex items-center gap-3 md:gap-4">
               {/* Links - Desktop */}
               <div className="hidden lg:flex items-center gap-4 text-xs text-gray-800">
-                <Link to="/" className="hover:text-blue-600 transition-colors">
+                <Link to="/auth" className="hover:text-accent transition-colors">
                   Crie a sua conta
                 </Link>
-                <Link to="/" className="hover:text-blue-600 transition-colors">
+                <Link to="/auth" className="hover:text-accent transition-colors">
                   Entre
                 </Link>
-                <Link to="/" className="hover:text-blue-600 transition-colors">
+                <Link to="/" className="hover:text-accent transition-colors">
                   Compras
                 </Link>
               </div>
