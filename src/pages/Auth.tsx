@@ -125,10 +125,18 @@ const Auth = () => {
         redirect_uri: window.location.origin,
       });
 
+      // If redirected, the function returns before this point
+      if (result.redirected) {
+        return;
+      }
+
       if (result.error) {
         console.error('Google OAuth error:', result.error);
         throw result.error;
       }
+
+      // If we get here successfully, navigate to home
+      navigate('/');
     } catch (error) {
       console.error('Google login error:', error);
       toast({
@@ -136,7 +144,6 @@ const Auth = () => {
         description: error instanceof Error ? error.message : 'Erro ao fazer login com Google',
         variant: 'destructive',
       });
-    } finally {
       setIsLoading(false);
     }
   };
