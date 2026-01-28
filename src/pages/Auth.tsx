@@ -122,16 +122,18 @@ const Auth = () => {
     setIsLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: `${window.location.origin}/auth`,
+        redirect_uri: window.location.origin,
       });
 
       if (result.error) {
+        console.error('Google OAuth error:', result.error);
         throw result.error;
       }
     } catch (error) {
+      console.error('Google login error:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao fazer login com Google',
+        description: error instanceof Error ? error.message : 'Erro ao fazer login com Google',
         variant: 'destructive',
       });
     } finally {
