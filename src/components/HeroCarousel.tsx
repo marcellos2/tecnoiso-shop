@@ -102,8 +102,8 @@ const HeroCarousel = () => {
   };
 
   return (
-    <section className="relative overflow-hidden" style={{ marginTop: '-180px', paddingTop: '180px' }}>
-      <div ref={emblaRef} className="overflow-hidden">
+    <section className="relative overflow-hidden pointer-events-none" style={{ marginTop: '-180px', paddingTop: '180px' }}>
+      <div ref={emblaRef} className="overflow-hidden pointer-events-auto">
         <div className="flex">
           {bannerSlides.map((slide, slideIndex) => {
             const isActive = selectedIndex === slideIndex;
