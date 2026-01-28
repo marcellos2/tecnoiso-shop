@@ -10,7 +10,7 @@ import Checkout from "./pages/Checkout";
 import OrderConfirmed from "./pages/OrderConfirmed";
 import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback"; // NOVA IMPORTAÇÃO
+import AuthCallback from "./pages/Authcallback"; // NOVA IMPORTAÇÃO
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
