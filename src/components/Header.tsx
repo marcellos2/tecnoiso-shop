@@ -129,17 +129,16 @@ const Header = () => {
               {/* Links - Desktop */}
               <div className="hidden lg:flex items-center gap-4 text-xs text-gray-800 relative z-[250]">
                 <button 
-                  onClick={() => navigate('/auth')} 
-                  className="hover:text-accent transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => window.location.href = '/auth'}
+                  className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
                 >
                   Crie a sua conta
                 </button>
                 <button 
-                  onClick={() => {
-                    console.log('Entre clicked, navigating to /auth');
-                    navigate('/auth');
-                  }} 
-                  className="hover:text-accent transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => window.location.href = '/auth'}
+                  className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
                 >
                   Entre
                 </button>
