@@ -102,7 +102,7 @@ const HeroCarousel = () => {
   };
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden" style={{ marginTop: '-180px', paddingTop: '180px' }}>
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {bannerSlides.map((slide, slideIndex) => {
