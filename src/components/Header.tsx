@@ -65,7 +65,7 @@ const Header = () => {
                       </Link>
                     ))}
                     <div className="mt-4 pt-4 border-t border-border space-y-2">
-                      <Link to="/" className="block py-2 hover:text-accent transition-colors">
+                      <Link to="/auth" className="block py-2 hover:text-accent transition-colors">
                         Entrar
                       </Link>
                       <Link to="/" className="block py-2 hover:text-accent transition-colors">
