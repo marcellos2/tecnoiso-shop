@@ -10,7 +10,10 @@ import Checkout from "./pages/Checkout";
 import OrderConfirmed from "./pages/OrderConfirmed";
 import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
+<<<<<<< HEAD
 import AuthCallback from "./pages/AuthCallback"; // NOVA IMPORTAÇÃO
+=======
+>>>>>>> 39aae7667fb4dd04d263ee01c098b8c1991a9ab3
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,7 +28,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+<<<<<<< HEAD
             <Route path="/auth/callback" element={<AuthCallback />} /> {/* NOVA ROTA */}
+=======
+>>>>>>> 39aae7667fb4dd04d263ee01c098b8c1991a9ab3
             <Route path="/carrinho" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/pedido-confirmado" element={<OrderConfirmed />} />

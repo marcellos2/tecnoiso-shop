@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -20,16 +21,19 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+<<<<<<< HEAD
     // Verifica se já existe uma sessão
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+=======
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+>>>>>>> 39aae7667fb4dd04d263ee01c098b8c1991a9ab3
       if (session?.user) {
         navigate('/');
       }
-    };
-    
-    checkSession();
+    });
 
+<<<<<<< HEAD
     // Escuta mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth event:', event);
@@ -40,12 +44,16 @@ const Auth = () => {
           title: 'Bem-vindo!',
           description: 'Login realizado com sucesso',
         });
+=======
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+>>>>>>> 39aae7667fb4dd04d263ee01c098b8c1991a9ab3
         navigate('/');
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,7 +123,7 @@ const Auth = () => {
 
         toast({
           title: 'Conta criada!',
-          description: 'Verifique seu e-mail para confirmar a conta',
+          description: 'Sua conta foi criada com sucesso',
         });
       }
     } catch (error) {
@@ -132,6 +140,7 @@ const Auth = () => {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
+<<<<<<< HEAD
       console.log('Iniciando login com Google...');
       
       // CORREÇÃO: Define o redirectTo para a página de callback
@@ -148,23 +157,37 @@ const Auth = () => {
             prompt: 'consent',
           },
         },
+=======
+      const result = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
+>>>>>>> 39aae7667fb4dd04d263ee01c098b8c1991a9ab3
       });
 
-      if (error) {
-        console.error('Erro no OAuth:', error);
-        throw error;
+      // If redirected, the function returns before this point
+      if (result.redirected) {
+        return;
       }
 
+<<<<<<< HEAD
       console.log('OAuth response:', data);
       
       // O Supabase vai redirecionar automaticamente para a URL do Google OAuth
       // Após autenticação, o Google redireciona de volta para /auth/callback
       
+=======
+      if (result.error) {
+        console.error('Google OAuth error:', result.error);
+        throw result.error;
+      }
+
+      // If we get here successfully, navigate to home
+      navigate('/');
+>>>>>>> 39aae7667fb4dd04d263ee01c098b8c1991a9ab3
     } catch (error) {
-      console.error('Erro no login com Google:', error);
+      console.error('Google login error:', error);
       toast({
         title: 'Erro',
-        description: error instanceof Error ? error.message : 'Erro ao fazer login com Google. Verifique se o Google OAuth está ativado no Supabase.',
+        description: error instanceof Error ? error.message : 'Erro ao fazer login com Google',
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -281,7 +304,7 @@ const Auth = () => {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-                className="w-full h-12 border border-border rounded flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 border border-border rounded flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -301,9 +324,7 @@ const Auth = () => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                <span className="text-foreground font-medium">
-                  {isLoading ? 'Redirecionando...' : 'Fazer Login com o Google'}
-                </span>
+                <span className="text-foreground font-medium">Fazer Login com o Google</span>
               </button>
             </form>
 
