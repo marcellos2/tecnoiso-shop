@@ -4,6 +4,7 @@ import { Search, ShoppingCart, MapPin, ChevronDown, User, Heart, Menu } from 'lu
 import { useCart } from '@/contexts/CartContext';
 import { CartSidebar } from './CartSidebar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
 
 const Header = () => {
@@ -13,6 +14,11 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Estados para autenticação e animação
+  const [user, setUser] = useState<any>(null);
+  const [userName, setUserName] = useState<string>('');
+  const [isAnimating, setIsAnimating] = useState(false);
   
   // Check if we're on a product page
   const isProductPage = location.pathname.startsWith('/produto/');
@@ -29,6 +35,57 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Verificar sessão e monitorar autenticação
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        extractUserName(session.user);
+      }
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+        setIsAnimating(true);
+        
+        setTimeout(() => {
+          extractUserName(session.user);
+          setTimeout(() => {
+            setIsAnimating(false);
+          }, 300);
+        }, 300);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setUserName('');
+        setIsAnimating(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const extractUserName = (user: any) => {
+    if (user.user_metadata?.full_name) {
+      const fullName = user.user_metadata.full_name;
+      const firstName = fullName.split(' ')[0];
+      setUserName(firstName);
+      return;
+    }
+
+    if (user.email) {
+      const emailName = user.email.split('@')[0];
+      const formattedName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+      setUserName(formattedName);
+      return;
+    }
+
+    setUserName('Usuário');
+  };
 
   const navLinks = [
     { name: 'Categorias', href: '/', hasDropdown: true },
@@ -66,9 +123,26 @@ const Header = () => {
                       </Link>
                     ))}
                     <div className="mt-4 pt-4 border-t border-border space-y-2">
-                      <Link to="/auth" className="block py-2 hover:text-accent transition-colors">
-                        Entrar
-                      </Link>
+                      {user ? (
+                        <>
+                          <div className="py-2 font-semibold text-accent">
+                            Olá, {userName}!
+                          </div>
+                          <button 
+                            onClick={async () => {
+                              await supabase.auth.signOut();
+                              navigate('/');
+                            }}
+                            className="block w-full text-left py-2 hover:text-accent transition-colors"
+                          >
+                            Sair
+                          </button>
+                        </>
+                      ) : (
+                        <Link to="/auth" className="block py-2 hover:text-accent transition-colors">
+                          Entrar
+                        </Link>
+                      )}
                       <Link to="/" className="block py-2 hover:text-accent transition-colors">
                         Central de Ajuda
                       </Link>
@@ -128,20 +202,50 @@ const Header = () => {
             <div className="flex items-center gap-3 md:gap-4">
               {/* Links - Desktop */}
               <div className="hidden lg:flex items-center gap-4 text-xs text-gray-800 relative z-[250]">
-                <button 
-                  type="button"
-                  onClick={() => window.location.href = '/auth'}
-                  className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
-                >
-                  Crie a sua conta
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => window.location.href = '/auth'}
-                  className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
-                >
-                  Entre
-                </button>
+                {user ? (
+                  <>
+                    <span 
+                      className={`transition-all duration-300 font-medium ${
+                        isAnimating 
+                          ? 'opacity-0 transform -translate-y-2' 
+                          : 'opacity-100 transform translate-y-0'
+                      }`}
+                    >
+                      Olá, {userName}
+                    </span>
+                    <button 
+                      type="button"
+                      onClick={async () => {
+                        await supabase.auth.signOut();
+                        navigate('/');
+                      }}
+                      className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
+                    >
+                      Sair
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      type="button"
+                      onClick={() => window.location.href = '/auth'}
+                      className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
+                    >
+                      Crie a sua conta
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => window.location.href = '/auth'}
+                      className={`hover:text-accent transition-all duration-300 cursor-pointer bg-transparent border-none p-0 ${
+                        isAnimating 
+                          ? 'opacity-0 transform -translate-y-2' 
+                          : 'opacity-100 transform translate-y-0'
+                      }`}
+                    >
+                      Entre
+                    </button>
+                  </>
+                )}
                 <Link to="/" className="hover:text-accent transition-colors cursor-pointer">
                   Compras
                 </Link>
