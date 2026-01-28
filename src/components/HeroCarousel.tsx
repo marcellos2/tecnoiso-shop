@@ -120,13 +120,13 @@ const HeroCarousel = () => {
                   <div className="container relative z-10 px-4 sm:px-6 md:px-8">
                     <div className="flex items-center justify-between gap-8">
                       {/* Content - Left Side */}
-                      <div className={`max-w-[450px] sm:max-w-[550px] md:max-w-[650px] lg:max-w-[700px] ${slide.textColor}`}>
+                      <div className={`max-w-[380px] sm:max-w-[480px] md:max-w-[550px] lg:max-w-[620px] ${slide.textColor}`}>
                         <div className="mb-3 md:mb-4 overflow-hidden">
                           <h3 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold transform transition-all duration-700 drop-shadow-md ${isActive && !isAnimating ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`} style={{ transitionDelay: '100ms' }}>{slide.title}</h3>
                         </div>
 
                         <div className="mb-5 md:mb-7 overflow-hidden">
-                          <h2 className={`text-4xl sm:text-5xl md:text-6xl lg:text-[100px] xl:text-[120px] font-black transform transition-all duration-700 leading-[0.9] drop-shadow-lg ${isActive && !isAnimating ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`} style={{ transitionDelay: '200ms' }}>{slide.subtitle}</h2>
+                          <h2 className={`text-3xl sm:text-4xl md:text-5xl lg:text-[65px] xl:text-[80px] font-black transform transition-all duration-700 leading-[0.95] drop-shadow-lg whitespace-nowrap ${isActive && !isAnimating ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`} style={{ transitionDelay: '200ms' }}>{slide.subtitle}</h2>
                         </div>
 
                         <div className="flex flex-wrap gap-3 md:gap-4 mb-4 md:mb-5">
