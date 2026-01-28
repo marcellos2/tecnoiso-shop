@@ -23,7 +23,7 @@ export default function ProductDetail() {
     return (
       <>
         <Header />
-        <main className="container py-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
+        <main className="container pt-56 md:pt-52 pb-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
           <Package className="w-24 h-24 text-muted-foreground mb-6" />
           <h1 className="text-2xl font-bold mb-4">Produto não encontrado</h1>
           <p className="text-muted-foreground mb-6">O produto que você procura não existe ou foi removido.</p>
@@ -57,7 +57,7 @@ export default function ProductDetail() {
   return (
     <>
       <Header />
-      <main className="container py-8">
+      <main className="container pt-56 md:pt-52 pb-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
           <Link to="/" className="hover:text-primary transition-colors">Início</Link>
@@ -67,10 +67,10 @@ export default function ProductDetail() {
           <span className="text-foreground font-medium">{product.name}</span>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Image */}
-          <div className="space-y-4">
-            <div className="aspect-square bg-gradient-to-br from-secondary to-muted rounded-3xl overflow-hidden relative group">
+          <div className="space-y-4 mt-12">
+            <div className="aspect-square bg-gradient-to-br from-secondary to-muted rounded-3xl overflow-hidden relative group max-w-md mx-auto lg:mx-0">
               <img
                 src={product.image}
                 alt={product.name}

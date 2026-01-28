@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, MapPin, ChevronDown, User, Heart, Menu } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { CartSidebar } from './CartSidebar';
@@ -11,6 +11,10 @@ const Header = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+  
+  // Check if we're on a product page
+  const isProductPage = location.pathname.startsWith('/produto/');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,7 +39,7 @@ const Header = () => {
   return (
     <>
       {/* Header Fixo no Topo */}
-      <div className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
+      <div className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-300 ${isProductPage ? 'bg-white shadow-md' : (isScrolled ? 'bg-white shadow-md' : 'bg-transparent')}`}>
         <div className="container">
           {/* Linha Principal */}
           <div className="flex items-center justify-between py-3 gap-4">
