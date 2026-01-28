@@ -20,7 +20,7 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session
+    // Verifica se já existe uma sessão
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -30,7 +30,7 @@ const Auth = () => {
     
     checkSession();
 
-    // Listen for auth state changes
+    // Escuta mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth event:', event);
       
@@ -51,7 +51,7 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Validate inputs
+    // Valida os inputs
     const emailResult = emailSchema.safeParse(email);
     if (!emailResult.success) {
       toast({
@@ -134,8 +134,8 @@ const Auth = () => {
     try {
       console.log('Iniciando login com Google...');
       
-      // IMPORTANTE: Usa o domínio do seu app como redirectTo
-      const redirectUrl = window.location.origin;
+      // CORREÇÃO: Define o redirectTo para a página de callback
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       
       console.log('Redirect URL:', redirectUrl);
       
@@ -147,7 +147,6 @@ const Auth = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
-          skipBrowserRedirect: false,
         },
       });
 
@@ -159,7 +158,7 @@ const Auth = () => {
       console.log('OAuth response:', data);
       
       // O Supabase vai redirecionar automaticamente para a URL do Google OAuth
-      // Após autenticação, o Google redireciona de volta para o seu app
+      // Após autenticação, o Google redireciona de volta para /auth/callback
       
     } catch (error) {
       console.error('Erro no login com Google:', error);
