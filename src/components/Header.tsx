@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, MapPin, ChevronDown, User, Heart, Menu } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { CartSidebar } from './CartSidebar';
@@ -12,6 +12,7 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Check if we're on a product page
   const isProductPage = location.pathname.startsWith('/produto/');
@@ -126,14 +127,23 @@ const Header = () => {
             {/* Ações do Usuário */}
             <div className="flex items-center gap-3 md:gap-4">
               {/* Links - Desktop */}
-              <div className="hidden lg:flex items-center gap-4 text-xs text-gray-800">
-                <Link to="/auth" className="hover:text-accent transition-colors">
+              <div className="hidden lg:flex items-center gap-4 text-xs text-gray-800 relative z-[250]">
+                <button 
+                  onClick={() => navigate('/auth')} 
+                  className="hover:text-accent transition-colors cursor-pointer"
+                >
                   Crie a sua conta
-                </Link>
-                <Link to="/auth" className="hover:text-accent transition-colors">
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('Entre clicked, navigating to /auth');
+                    navigate('/auth');
+                  }} 
+                  className="hover:text-accent transition-colors cursor-pointer"
+                >
                   Entre
-                </Link>
-                <Link to="/" className="hover:text-accent transition-colors">
+                </button>
+                <Link to="/" className="hover:text-accent transition-colors cursor-pointer">
                   Compras
                 </Link>
               </div>
