@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, CreditCard, QrCode, Barcode, Check, AlertCircle } from "lucide-react";
+import { ArrowLeft, Lock, Check, AlertCircle, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/contexts/CartContext";
 import logo from "@/assets/logo.png";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-type PaymentMethod = "pix" | "credit_card" | "boleto";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface FormData {
   // Dados Pessoais
@@ -27,20 +26,15 @@ interface FormData {
   neighborhood: string;
   city: string;
   state: string;
-  
-  // Pagamento - Cartão
-  cardNumber: string;
-  cardName: string;
-  cardExpiry: string;
-  cardCvv: string;
 }
 
 export default function Checkout() {
-  const { items, totalPrice } = useCart();
+  const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isLoadingCep, setIsLoadingCep] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
@@ -54,10 +48,6 @@ export default function Checkout() {
     neighborhood: "",
     city: "",
     state: "",
-    cardNumber: "",
-    cardName: "",
-    cardExpiry: "",
-    cardCvv: "",
   });
 
   const formatPrice = (price: number) => {
@@ -66,8 +56,6 @@ export default function Checkout() {
       currency: "BRL",
     });
   };
-
-  const pixPrice = totalPrice * 0.95;
 
   // Máscaras de input
   const maskCPF = (value: string) => {
@@ -104,31 +92,12 @@ export default function Checkout() {
       .replace(/(-\d{3})\d+?$/, "$1");
   };
 
-  const maskCardNumber = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{4})(\d)/, "$1 $2")
-      .replace(/(\d{4})(\d)/, "$1 $2")
-      .replace(/(\d{4})(\d)/, "$1 $2")
-      .replace(/(\d{4})\d+?$/, "$1");
-  };
-
-  const maskCardExpiry = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "$1/$2")
-      .replace(/(\/\d{2})\d+?$/, "$1");
-  };
-
   const handleInputChange = (field: keyof FormData, value: string) => {
     let maskedValue = value;
 
     if (field === "cpf") maskedValue = maskCPF(value);
     if (field === "phone") maskedValue = maskPhone(value);
     if (field === "cep") maskedValue = maskCEP(value);
-    if (field === "cardNumber") maskedValue = maskCardNumber(value);
-    if (field === "cardExpiry") maskedValue = maskCardExpiry(value);
-    if (field === "cardCvv") maskedValue = value.replace(/\D/g, "").slice(0, 4);
 
     setFormData({ ...formData, [field]: maskedValue });
   };
@@ -186,36 +155,69 @@ export default function Checkout() {
   const handleContinue = () => {
     if (currentStep === 1 && validateStep1()) {
       setCurrentStep(2);
-    } else if (currentStep === 2 && validateStep2()) {
-      setCurrentStep(3);
     }
   };
 
-  const handleFinishOrder = () => {
-    // Aqui você irá integrar com o Asaas
-    console.log("Dados do pedido:", {
-      customer: {
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        cpfCnpj: formData.cpf,
-      },
-      address: {
-        cep: formData.cep,
-        street: formData.street,
-        number: formData.number,
-        complement: formData.complement,
-        neighborhood: formData.neighborhood,
-        city: formData.city,
-        state: formData.state,
-      },
-      paymentMethod: paymentMethod,
-      items: items,
-      totalAmount: paymentMethod === "pix" ? pixPrice : totalPrice,
-    });
+  // Função para redirecionar para o Mercado Pago
+  const handlePayWithMercadoPago = async () => {
+    if (!validateStep2()) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      const baseUrl = window.location.origin;
+      
+      const response = await supabase.functions.invoke('create-mercadopago-preference', {
+        body: {
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+          customer: {
+            name: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            cpf: formData.cpf,
+          },
+          address: {
+            cep: formData.cep,
+            street: formData.street,
+            number: formData.number,
+            complement: formData.complement,
+            neighborhood: formData.neighborhood,
+            city: formData.city,
+            state: formData.state,
+          },
+          successUrl: `${baseUrl}/order-confirmed`,
+          failureUrl: `${baseUrl}/checkout`,
+          pendingUrl: `${baseUrl}/order-confirmed?status=pending`,
+        },
+      });
 
-    // Navegar para página de confirmação
-    navigate("/order-confirmed");
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao criar pagamento');
+      }
+
+      const data = response.data;
+      
+      if (data.initPoint) {
+        // Redirecionar para o Mercado Pago
+        window.location.href = data.initPoint;
+      } else {
+        throw new Error('URL de pagamento não recebida');
+      }
+    } catch (error) {
+      console.error('Erro ao processar pagamento:', error);
+      toast({
+        title: 'Erro no pagamento',
+        description: error instanceof Error ? error.message : 'Erro ao processar pagamento. Tente novamente.',
+        variant: 'destructive',
+      });
+      setIsProcessing(false);
+    }
   };
 
   if (items.length === 0) {
@@ -259,7 +261,7 @@ export default function Checkout() {
           <div className="lg:col-span-2 space-y-6">
             {/* Progress Steps */}
             <div className="flex items-center justify-between mb-8">
-              {[1, 2, 3].map((step) => (
+              {[1, 2].map((step) => (
                 <div key={step} className="flex items-center flex-1">
                   <div className="flex items-center">
                     <div
@@ -275,11 +277,10 @@ export default function Checkout() {
                       currentStep >= step ? "text-foreground" : "text-muted-foreground"
                     }`}>
                       {step === 1 && "Dados Pessoais"}
-                      {step === 2 && "Endereço"}
-                      {step === 3 && "Pagamento"}
+                      {step === 2 && "Endereço e Pagamento"}
                     </span>
                   </div>
-                  {step < 3 && (
+                  {step < 2 && (
                     <div
                       className={`flex-1 h-1 mx-4 ${
                         currentStep > step ? "bg-accent" : "bg-muted"
@@ -465,199 +466,33 @@ export default function Checkout() {
                   </div>
                 </div>
 
+                {/* Selo de Compra Segura */}
+                <Alert className="bg-success/10 border-success mt-4">
+                  <ShieldCheck className="h-5 w-5 text-success" />
+                  <AlertDescription className="text-success font-medium">
+                    Compra 100% segura via Mercado Pago. Você será redirecionado para escolher sua forma de pagamento (PIX, Cartão, Boleto).
+                  </AlertDescription>
+                </Alert>
+
                 <Button
-                  onClick={handleContinue}
-                  disabled={!validateStep2()}
-                  className="w-full mt-6"
+                  onClick={handlePayWithMercadoPago}
+                  disabled={!validateStep2() || isProcessing}
+                  className="w-full mt-6 gap-2"
                   size="lg"
                 >
-                  Continuar para Pagamento
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-5 h-5" />
+                      Pagar com Mercado Pago
+                    </>
+                  )}
                 </Button>
               </Card>
-            )}
-
-            {/* Step 3: Pagamento */}
-            {currentStep === 3 && (
-              <div className="space-y-6">
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold">Forma de Pagamento</h2>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCurrentStep(2)}
-                    >
-                      Voltar
-                    </Button>
-                  </div>
-
-                  <RadioGroup
-                    value={paymentMethod}
-                    onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
-                  >
-                    {/* PIX */}
-                    <div className="flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer hover:border-accent transition-colors">
-                      <RadioGroupItem value="pix" id="pix" />
-                      <Label
-                        htmlFor="pix"
-                        className="flex items-center justify-between flex-1 cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center">
-                            <QrCode className="w-6 h-6 text-success" />
-                          </div>
-                          <div>
-                            <p className="font-semibold">PIX</p>
-                            <p className="text-sm text-muted-foreground">
-                              Aprovação imediata
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg text-success">
-                            {formatPrice(pixPrice)}
-                          </p>
-                          <p className="text-xs text-success font-medium">5% de desconto</p>
-                        </div>
-                      </Label>
-                    </div>
-
-                    {/* Cartão de Crédito */}
-                    <div className="flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer hover:border-accent transition-colors">
-                      <RadioGroupItem value="credit_card" id="credit_card" />
-                      <Label
-                        htmlFor="credit_card"
-                        className="flex items-center justify-between flex-1 cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                            <CreditCard className="w-6 h-6 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-semibold">Cartão de Crédito</p>
-                            <p className="text-sm text-muted-foreground">
-                              Até 12x sem juros
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg">{formatPrice(totalPrice)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            12x de {formatPrice(totalPrice / 12)}
-                          </p>
-                        </div>
-                      </Label>
-                    </div>
-
-                    {/* Boleto */}
-                    <div className="flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer hover:border-accent transition-colors">
-                      <RadioGroupItem value="boleto" id="boleto" />
-                      <Label
-                        htmlFor="boleto"
-                        className="flex items-center justify-between flex-1 cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                            <Barcode className="w-6 h-6 text-foreground" />
-                          </div>
-                          <div>
-                            <p className="font-semibold">Boleto Bancário</p>
-                            <p className="text-sm text-muted-foreground">
-                              Vencimento em 3 dias
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg">{formatPrice(totalPrice)}</p>
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </Card>
-
-                {/* Formulário de Cartão */}
-                {paymentMethod === "credit_card" && (
-                  <Card className="p-6">
-                    <h3 className="font-bold text-lg mb-4">Dados do Cartão</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="cardNumber">Número do Cartão *</Label>
-                        <Input
-                          id="cardNumber"
-                          placeholder="0000 0000 0000 0000"
-                          value={formData.cardNumber}
-                          onChange={(e) => handleInputChange("cardNumber", e.target.value)}
-                          maxLength={19}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="cardName">Nome no Cartão *</Label>
-                        <Input
-                          id="cardName"
-                          placeholder="NOME COMO ESTÁ NO CARTÃO"
-                          value={formData.cardName}
-                          onChange={(e) => handleInputChange("cardName", e.target.value.toUpperCase())}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="cardExpiry">Validade *</Label>
-                          <Input
-                            id="cardExpiry"
-                            placeholder="MM/AA"
-                            value={formData.cardExpiry}
-                            onChange={(e) => handleInputChange("cardExpiry", e.target.value)}
-                            maxLength={5}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="cardCvv">CVV *</Label>
-                          <Input
-                            id="cardCvv"
-                            placeholder="000"
-                            value={formData.cardCvv}
-                            onChange={(e) => handleInputChange("cardCvv", e.target.value)}
-                            maxLength={4}
-                            type="password"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Informações PIX */}
-                {paymentMethod === "pix" && (
-                  <Alert className="bg-success/10 border-success">
-                    <QrCode className="h-4 w-4 text-success" />
-                    <AlertDescription className="text-success">
-                      Após confirmar o pedido, você receberá o QR Code para pagamento via PIX.
-                      O pagamento é processado instantaneamente.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Informações Boleto */}
-                {paymentMethod === "boleto" && (
-                  <Alert>
-                    <Barcode className="h-4 w-4" />
-                    <AlertDescription>
-                      O boleto será gerado após a confirmação do pedido. O prazo de compensação
-                      é de até 3 dias úteis.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <Button
-                  onClick={handleFinishOrder}
-                  className="w-full"
-                  size="lg"
-                >
-                  Finalizar Pedido
-                </Button>
-              </div>
             )}
           </div>
 
@@ -692,19 +527,24 @@ export default function Checkout() {
                   <span className="text-muted-foreground">Frete</span>
                   <span className="font-medium text-success">GRÁTIS</span>
                 </div>
-                {paymentMethod === "pix" && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-success font-medium">Desconto PIX (5%)</span>
-                    <span className="font-medium text-success">
-                      -{formatPrice(totalPrice * 0.05)}
-                    </span>
-                  </div>
-                )}
                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
                   <span>Total</span>
                   <span className="text-accent">
-                    {formatPrice(paymentMethod === "pix" ? pixPrice : totalPrice)}
+                    {formatPrice(totalPrice)}
                   </span>
+                </div>
+              </div>
+
+              {/* Selo Mercado Pago */}
+              <div className="mt-6 pt-4 border-t border-border">
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-success" />
+                  <span>Pagamento seguro via</span>
+                </div>
+                <div className="flex items-center justify-center mt-2">
+                  <div className="bg-[#009EE3] text-white px-3 py-1.5 rounded font-bold text-sm">
+                    Mercado Pago
+                  </div>
                 </div>
               </div>
             </Card>
