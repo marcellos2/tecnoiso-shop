@@ -199,7 +199,7 @@ const Header = () => {
             </div>
 
             {/* Ações do Usuário */}
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               {/* Links - Desktop */}
               <div className="hidden lg:flex items-center gap-4 text-xs text-gray-800 relative z-[250]">
                 {user ? (
@@ -248,6 +248,9 @@ const Header = () => {
                 )}
                 <Link to="/" className="hover:text-accent transition-colors cursor-pointer">
                   Compras
+                </Link>
+                <Link to="/" className="hover:text-accent transition-colors cursor-pointer">
+                  Contato
                 </Link>
               </div>
 

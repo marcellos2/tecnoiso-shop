@@ -27,6 +27,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/carrinho" element={<Checkout />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/produto/:id" element={<ProductDetail />} />
             <Route path="/order-confirmed" element={<OrderConfirmed />} />
