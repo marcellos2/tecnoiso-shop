@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { SecurityBadge } from "@/components/SecurityBadge";
 import { useState } from "react";
 
 export default function Cart() {
@@ -207,16 +208,7 @@ export default function Cart() {
               </Button>
             </Link>
 
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4" />
-                Compra Segura
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                Entrega Rápida
-              </div>
-            </div>
+            <SecurityBadge variant="banner" showPaymentMethods />
           </div>
         </div>
       </main>

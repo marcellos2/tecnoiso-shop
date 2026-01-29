@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, CreditCard, QrCode, Barcode, Check, AlertCircle } from "lucide-react";
+import { ArrowLeft, Lock, CreditCard, QrCode, Barcode, Check, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/contexts/CartContext";
 import logo from "@/assets/logo.png";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SecurityBadge } from "@/components/SecurityBadge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 
-type PaymentMethod = "pix" | "credit_card" | "boleto";
+type PaymentMethod = "mercadopago" | "pix" | "credit_card" | "boleto";
 
 interface FormData {
   // Dados Pessoais
@@ -35,13 +39,21 @@ interface FormData {
   cardCvv: string;
 }
 
+// Initialize Mercado Pago SDK
+const mercadoPagoPublicKey = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
+if (mercadoPagoPublicKey) {
+  initMercadoPago(mercadoPagoPublicKey, { locale: 'pt-BR' });
+}
+
 export default function Checkout() {
-  const { items, totalPrice } = useCart();
+  const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
   
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mercadopago");
   const [isLoadingCep, setIsLoadingCep] = useState(false);
+  const [isCreatingPreference, setIsCreatingPreference] = useState(false);
+  const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
@@ -191,31 +203,98 @@ export default function Checkout() {
     }
   };
 
-  const handleFinishOrder = () => {
-    // Aqui você irá integrar com o Asaas
-    console.log("Dados do pedido:", {
-      customer: {
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        cpfCnpj: formData.cpf,
-      },
-      address: {
-        cep: formData.cep,
-        street: formData.street,
-        number: formData.number,
-        complement: formData.complement,
-        neighborhood: formData.neighborhood,
-        city: formData.city,
-        state: formData.state,
-      },
-      paymentMethod: paymentMethod,
-      items: items,
-      totalAmount: paymentMethod === "pix" ? pixPrice : totalPrice,
-    });
+  const createMercadoPagoPreference = async () => {
+    setIsCreatingPreference(true);
+    
+    try {
+      const nameParts = formData.fullName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const phoneDigits = formData.phone.replace(/\D/g, '');
+      const areaCode = phoneDigits.slice(0, 2);
+      const phoneNumber = phoneDigits.slice(2);
 
-    // Navegar para página de confirmação
-    navigate("/order-confirmed");
+      const { data, error } = await supabase.functions.invoke('mercadopago-preference', {
+        body: {
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+          payer: {
+            name: firstName,
+            surname: lastName,
+            email: formData.email,
+            phone: {
+              area_code: areaCode,
+              number: phoneNumber,
+            },
+            identification: formData.cpf ? {
+              type: 'CPF',
+              number: formData.cpf.replace(/\D/g, ''),
+            } : undefined,
+            address: {
+              street_name: formData.street,
+              street_number: parseInt(formData.number) || 0,
+              zip_code: formData.cep.replace(/\D/g, ''),
+            },
+          },
+          back_urls: {
+            success: `${window.location.origin}/order-confirmed`,
+            failure: `${window.location.origin}/checkout`,
+            pending: `${window.location.origin}/order-pending`,
+          },
+        },
+      });
+
+      if (error) {
+        console.error('Error creating preference:', error);
+        toast.error('Erro ao iniciar pagamento. Tente novamente.');
+        return;
+      }
+
+      console.log('Preference created:', data);
+      setPreferenceId(data.id);
+      toast.success('Preferência criada! Clique no botão do Mercado Pago para pagar.');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Erro ao processar pagamento.');
+    } finally {
+      setIsCreatingPreference(false);
+    }
+  };
+
+  const handleFinishOrder = async () => {
+    if (paymentMethod === "mercadopago") {
+      await createMercadoPagoPreference();
+    } else {
+      // Legacy flow for other payment methods
+      console.log("Dados do pedido:", {
+        customer: {
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          cpfCnpj: formData.cpf,
+        },
+        address: {
+          cep: formData.cep,
+          street: formData.street,
+          number: formData.number,
+          complement: formData.complement,
+          neighborhood: formData.neighborhood,
+          city: formData.city,
+          state: formData.state,
+        },
+        paymentMethod: paymentMethod,
+        items: items,
+        totalAmount: paymentMethod === "pix" ? pixPrice : totalPrice,
+      });
+      navigate("/order-confirmed");
+    }
   };
 
   if (items.length === 0) {
@@ -246,10 +325,7 @@ export default function Checkout() {
           <Link to="/">
             <img src={logo} alt="Tecnoiso" className="h-8" />
           </Link>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Lock className="w-4 h-4" />
-            <span>Compra 100% segura</span>
-          </div>
+          <SecurityBadge />
         </div>
       </header>
 
@@ -493,10 +569,41 @@ export default function Checkout() {
 
                   <RadioGroup
                     value={paymentMethod}
-                    onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                    onValueChange={(value) => {
+                      setPaymentMethod(value as PaymentMethod);
+                      setPreferenceId(null); // Reset preference when changing payment method
+                    }}
                   >
+                    {/* Mercado Pago - Opção Principal */}
+                    <div className={`flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-colors ${paymentMethod === "mercadopago" ? "border-accent bg-accent/5" : "hover:border-accent"}`}>
+                      <RadioGroupItem value="mercadopago" id="mercadopago" />
+                      <Label
+                        htmlFor="mercadopago"
+                        className="flex items-center justify-between flex-1 cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-[#009EE3]/10 rounded-full flex items-center justify-center">
+                            <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#009EE3"/>
+                              <path d="M16.5 8.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm4.5 6.5c-2.33 0-4.32-1.45-5.12-3.5h1.67c.69 1.19 1.97 2 3.45 2s2.76-.81 3.45-2h1.67c-.8 2.05-2.79 3.5-5.12 3.5z" fill="white"/>
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-semibold">Mercado Pago</p>
+                            <p className="text-sm text-muted-foreground">
+                              PIX, Cartão, Boleto e mais
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-lg">{formatPrice(totalPrice)}</p>
+                          <p className="text-xs text-[#009EE3] font-medium">Compra segura</p>
+                        </div>
+                      </Label>
+                    </div>
+
                     {/* PIX */}
-                    <div className="flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer hover:border-accent transition-colors">
+                    <div className={`flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-colors ${paymentMethod === "pix" ? "border-accent bg-accent/5" : "hover:border-accent"}`}>
                       <RadioGroupItem value="pix" id="pix" />
                       <Label
                         htmlFor="pix"
@@ -507,7 +614,7 @@ export default function Checkout() {
                             <QrCode className="w-6 h-6 text-success" />
                           </div>
                           <div>
-                            <p className="font-semibold">PIX</p>
+                            <p className="font-semibold">PIX Direto</p>
                             <p className="text-sm text-muted-foreground">
                               Aprovação imediata
                             </p>
@@ -523,7 +630,7 @@ export default function Checkout() {
                     </div>
 
                     {/* Cartão de Crédito */}
-                    <div className="flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer hover:border-accent transition-colors">
+                    <div className={`flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-colors ${paymentMethod === "credit_card" ? "border-accent bg-accent/5" : "hover:border-accent"}`}>
                       <RadioGroupItem value="credit_card" id="credit_card" />
                       <Label
                         htmlFor="credit_card"
@@ -550,7 +657,7 @@ export default function Checkout() {
                     </div>
 
                     {/* Boleto */}
-                    <div className="flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer hover:border-accent transition-colors">
+                    <div className={`flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-colors ${paymentMethod === "boleto" ? "border-accent bg-accent/5" : "hover:border-accent"}`}>
                       <RadioGroupItem value="boleto" id="boleto" />
                       <Label
                         htmlFor="boleto"
@@ -650,13 +757,44 @@ export default function Checkout() {
                   </Alert>
                 )}
 
-                <Button
-                  onClick={handleFinishOrder}
-                  className="w-full"
-                  size="lg"
-                >
-                  Finalizar Pedido
-                </Button>
+                {/* Mercado Pago Wallet Button */}
+                {paymentMethod === "mercadopago" && preferenceId && (
+                  <div className="w-full">
+                    <Wallet initialization={{ preferenceId }} />
+                  </div>
+                )}
+
+                {/* Regular Button for other methods or to create preference */}
+                {paymentMethod === "mercadopago" && !preferenceId && (
+                  <Button
+                    onClick={handleFinishOrder}
+                    disabled={isCreatingPreference}
+                    className="w-full bg-[#009EE3] hover:bg-[#0088c7]"
+                    size="lg"
+                  >
+                    {isCreatingPreference ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Preparando pagamento...
+                      </>
+                    ) : (
+                      "Pagar com Mercado Pago"
+                    )}
+                  </Button>
+                )}
+
+                {paymentMethod !== "mercadopago" && (
+                  <Button
+                    onClick={handleFinishOrder}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Finalizar Pedido
+                  </Button>
+                )}
+
+                {/* Security Badge */}
+                <SecurityBadge variant="banner" showPaymentMethods />
               </div>
             )}
           </div>
