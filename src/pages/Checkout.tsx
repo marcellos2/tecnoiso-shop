@@ -80,11 +80,21 @@ export default function Checkout() {
   };
 
   const maskPhone = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d)/, "$1-$2")
-      .replace(/(-\d{4})\d+?$/, "$1");
+    // Aceitar qualquer formato de telefone - apenas limitar caracteres
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 10) {
+      // Formato: (XX) XXXX-XXXX
+      return digits
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{4})(\d)/, "$1-$2")
+        .replace(/(-\d{4})\d+?$/, "$1");
+    } else {
+      // Formato: (XX) XXXXX-XXXX
+      return digits
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2")
+        .replace(/(-\d{4})\d+?$/, "$1");
+    }
   };
 
   const maskCEP = (value: string) => {
@@ -151,13 +161,14 @@ export default function Checkout() {
     }
   };
 
-  // Validação de cada step
+  // Validação de cada step - apenas campos essenciais obrigatórios
   const validateStep1 = () => {
+    const phoneDigits = formData.phone.replace(/\D/g, "").length;
     return (
       formData.fullName.length > 3 &&
       formData.email.includes("@") &&
-      formData.phone.replace(/\D/g, "").length === 11 &&
-      formData.cpf.replace(/\D/g, "").length === 11
+      (phoneDigits >= 8 && phoneDigits <= 15) // Aceita telefones de 8 a 15 dígitos
+      // CPF agora é opcional
     );
   };
 
@@ -318,14 +329,17 @@ export default function Checkout() {
                   </div>
 
                   <div>
-                    <Label htmlFor="cpf">CPF *</Label>
+                    <Label htmlFor="cpf">CPF</Label>
                     <Input
                       id="cpf"
-                      placeholder="000.000.000-00"
+                      placeholder="000.000.000-00 (opcional)"
                       value={formData.cpf}
                       onChange={(e) => handleInputChange("cpf", e.target.value)}
                       maxLength={14}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Opcional - necessário apenas para nota fiscal
+                    </p>
                   </div>
                 </div>
 
