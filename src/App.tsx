@@ -11,7 +11,6 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import ProductDetail from "./pages/ProductDetail";
 import OrderConfirmed from "./pages/OrderConfirmed";
-import OrderPending from "./pages/OrderPending";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,11 +27,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/carrinho" element={<Checkout />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/produto/:id" element={<ProductDetail />} />
             <Route path="/order-confirmed" element={<OrderConfirmed />} />
-            <Route path="/order-pending" element={<OrderPending />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

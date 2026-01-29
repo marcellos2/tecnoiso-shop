@@ -199,7 +199,7 @@ const Header = () => {
             </div>
 
             {/* Ações do Usuário */}
-            <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
               {/* Links - Desktop */}
               <div className="hidden lg:flex items-center gap-4 text-xs text-gray-800 relative z-[250]">
                 {user ? (
@@ -249,9 +249,6 @@ const Header = () => {
                 <Link to="/" className="hover:text-accent transition-colors cursor-pointer">
                   Compras
                 </Link>
-                <Link to="/" className="hover:text-accent transition-colors cursor-pointer">
-                  Contato
-                </Link>
               </div>
 
               {/* Carrinho */}
@@ -289,6 +286,12 @@ const Header = () => {
             <Link to="/" className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full hover:shadow-lg transition-all text-xs font-medium">
               <span>Mercado Play</span>
             </Link>
+            
+            <div className="flex items-center gap-4 ml-auto text-xs text-gray-600">
+              <Link to="/" className="hover:text-blue-600 transition-colors">
+                Contato
+              </Link>
+            </div>
           </nav>
         </div>
 
