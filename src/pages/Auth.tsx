@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -132,39 +133,24 @@ const Auth = () => {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      console.log('Iniciando login com Google...');
+      console.log('Iniciando login com Google via Lovable Cloud...');
       
-      // CORREÇÃO: Define o redirectTo para a página de callback
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      
-      console.log('Redirect URL:', redirectUrl);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
+      const { error } = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
       });
 
       if (error) {
         console.error('Erro no OAuth:', error);
         throw error;
       }
-
-      console.log('OAuth response:', data);
       
-      // O Supabase vai redirecionar automaticamente para a URL do Google OAuth
-      // Após autenticação, o Google redireciona de volta para /auth/callback
+      // O Lovable Cloud vai gerenciar o redirecionamento automaticamente
       
     } catch (error) {
       console.error('Erro no login com Google:', error);
       toast({
         title: 'Erro',
-        description: error instanceof Error ? error.message : 'Erro ao fazer login com Google. Verifique se o Google OAuth está ativado no Supabase.',
+        description: error instanceof Error ? error.message : 'Erro ao fazer login com Google.',
         variant: 'destructive',
       });
       setIsLoading(false);
