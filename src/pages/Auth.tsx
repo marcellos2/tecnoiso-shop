@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -133,18 +132,29 @@ const Auth = () => {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      console.log('Iniciando login com Google via Lovable Cloud...');
+      console.log('Iniciando login com Google...');
       
-      const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      
+      console.log('Redirect URL:', redirectUrl);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       });
 
       if (error) {
         console.error('Erro no OAuth:', error);
         throw error;
       }
-      
-      // O Lovable Cloud vai gerenciar o redirecionamento automaticamente
+
+      console.log('OAuth response:', data);
       
     } catch (error) {
       console.error('Erro no login com Google:', error);
