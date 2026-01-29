@@ -14,16 +14,213 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customer_requests: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          message: string
+          request_type: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          message: string
+          request_type: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          message?: string
+          request_type?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          created_at: string
+          customer_cpf: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          items: Json
+          notes: string | null
+          payment_id: string | null
+          payment_status: string | null
+          shipping_address: Json
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_cpf?: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          items: Json
+          notes?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
+          shipping_address: Json
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_cpf?: string | null
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
+          shipping_address?: Json
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          discount: number | null
+          id: string
+          image_url: string | null
+          in_stock: boolean | null
+          name: string
+          original_price: number | null
+          price: number
+          rating: number | null
+          reviews_count: number | null
+          specifications: Json | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          discount?: number | null
+          id?: string
+          image_url?: string | null
+          in_stock?: boolean | null
+          name: string
+          original_price?: number | null
+          price: number
+          rating?: number | null
+          reviews_count?: number | null
+          specifications?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          discount?: number | null
+          id?: string
+          image_url?: string | null
+          in_stock?: boolean | null
+          name?: string
+          original_price?: number | null
+          price?: number
+          rating?: number | null
+          reviews_count?: number | null
+          specifications?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +347,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "customer"],
+    },
   },
 } as const
