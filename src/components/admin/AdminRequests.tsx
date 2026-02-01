@@ -27,7 +27,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Eye, Trash2, MessageCircle } from 'lucide-react';
+import { Search, Eye, Trash2, MessageCircle, MessageSquare, Send, User, Mail, Phone } from 'lucide-react';
 
 interface CustomerRequest {
   id: string;
@@ -44,10 +44,10 @@ interface CustomerRequest {
 }
 
 const statusOptions = [
-  { value: 'pending', label: 'Pendente', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'in_progress', label: 'Em Andamento', color: 'bg-blue-100 text-blue-700' },
-  { value: 'resolved', label: 'Resolvido', color: 'bg-green-100 text-green-700' },
-  { value: 'closed', label: 'Fechado', color: 'bg-gray-100 text-gray-700' },
+  { value: 'pending', label: 'Pendente', className: 'bg-warning/10 text-warning border-warning/20' },
+  { value: 'in_progress', label: 'Em Andamento', className: 'bg-foreground/10 text-foreground border-foreground/20' },
+  { value: 'resolved', label: 'Resolvido', className: 'bg-success/10 text-success border-success/20' },
+  { value: 'closed', label: 'Fechado', className: 'bg-muted text-muted-foreground border-border' },
 ];
 
 const requestTypes = [
@@ -213,7 +213,7 @@ export function AdminRequests() {
     if (!option) return <span className="text-xs">{status}</span>;
 
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${option.color}`}>
+      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${option.className}`}>
         {option.label}
       </span>
     );
@@ -244,15 +244,15 @@ export function AdminRequests() {
             placeholder="Buscar por nome, email ou assunto..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 border-border bg-background"
           />
         </div>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px] border-border bg-background">
             <SelectValue placeholder="Filtrar status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-border">
             <SelectItem value="all">Todos os status</SelectItem>
             {statusOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
@@ -263,66 +263,85 @@ export function AdminRequests() {
         </Select>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Solicitações ({filteredRequests.length})</CardTitle>
+      <Card className="border-border bg-background">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Solicitações ({filteredRequests.length})
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading ? (
-            <div className="text-center py-8">Carregando...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin h-8 w-8 border-2 border-foreground border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-muted-foreground">Carregando...</p>
+            </div>
           ) : filteredRequests.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhuma solicitação encontrada
+            <div className="text-center py-12">
+              <MessageSquare className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+              <p className="font-medium text-foreground">Nenhuma solicitação encontrada</p>
+              <p className="text-sm text-muted-foreground">As solicitações aparecerão aqui quando forem enviadas</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Assunto</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Tipo</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Assunto</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Status</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Data</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-semibold">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRequests.map((request) => (
-                    <TableRow key={request.id}>
+                    <TableRow key={request.id} className="border-border hover:bg-secondary/50">
                       <TableCell>
-                        <div>
-                          <p className="font-medium">{request.customer_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {request.customer_email}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-foreground/5 flex items-center justify-center">
+                            <span className="text-sm font-bold text-foreground">
+                              {request.customer_name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">{request.customer_name}</p>
+                            <p className="text-xs text-muted-foreground">{request.customer_email}</p>
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell>{getRequestTypeLabel(request.request_type)}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        {request.subject}
+                      <TableCell>
+                        <span className="text-sm px-2.5 py-1 rounded-full bg-secondary text-foreground font-medium">
+                          {getRequestTypeLabel(request.request_type)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="max-w-[200px]">
+                        <p className="truncate text-foreground font-medium">{request.subject}</p>
                       </TableCell>
                       <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell className="text-sm">
+                      <TableCell className="text-sm text-muted-foreground">
                         {new Date(request.created_at).toLocaleDateString('pt-BR')}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="icon"
                             onClick={() => {
                               setSelectedRequest(request);
                               setAdminResponse(request.admin_response || '');
                               setIsDetailOpen(true);
                             }}
+                            className="border-border hover:bg-secondary"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="destructive"
-                            size="sm"
+                            variant="outline"
+                            size="icon"
                             onClick={() => deleteRequest(request.id)}
+                            className="border-destructive/30 text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -338,56 +357,65 @@ export function AdminRequests() {
       </Card>
 
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-border">
           <DialogHeader>
-            <DialogTitle>Detalhes da Solicitação</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-foreground">Detalhes da Solicitação</DialogTitle>
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-muted-foreground">Cliente</Label>
-                  <p className="font-medium">{selectedRequest.customer_name}</p>
+              <div className="grid grid-cols-2 gap-4 p-4 bg-secondary/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Cliente</Label>
+                    <p className="font-semibold text-foreground">{selectedRequest.customer_name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Email</Label>
+                    <p className="text-foreground">{selectedRequest.customer_email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Telefone</Label>
+                    <p className="text-foreground">{selectedRequest.customer_phone || '-'}</p>
+                  </div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Email</Label>
-                  <p>{selectedRequest.customer_email}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Telefone</Label>
-                  <p>{selectedRequest.customer_phone || '-'}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Tipo</Label>
-                  <p>{getRequestTypeLabel(selectedRequest.request_type)}</p>
+                  <Label className="text-xs text-muted-foreground">Tipo</Label>
+                  <p className="text-foreground">{getRequestTypeLabel(selectedRequest.request_type)}</p>
                 </div>
               </div>
 
               <div>
-                <Label className="text-muted-foreground">Data</Label>
-                <p>{new Date(selectedRequest.created_at).toLocaleString('pt-BR')}</p>
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider">Data</Label>
+                <p className="text-foreground">{new Date(selectedRequest.created_at).toLocaleString('pt-BR')}</p>
               </div>
 
-              <div className="border rounded-lg p-4 space-y-2">
-                <Label className="text-muted-foreground">Assunto</Label>
-                <p className="font-medium">{selectedRequest.subject}</p>
+              <div className="border border-border rounded-lg p-4 space-y-2">
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider">Assunto</Label>
+                <p className="font-semibold text-foreground text-lg">{selectedRequest.subject}</p>
               </div>
 
-              <div className="border rounded-lg p-4 space-y-2">
-                <Label className="text-muted-foreground">Mensagem</Label>
-                <p className="whitespace-pre-wrap">{selectedRequest.message}</p>
+              <div className="border border-border rounded-lg p-4 space-y-2 bg-secondary/20">
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider">Mensagem do Cliente</Label>
+                <p className="whitespace-pre-wrap text-foreground">{selectedRequest.message}</p>
               </div>
 
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className="text-foreground font-semibold">Status</Label>
                 <Select
                   value={selectedRequest.status}
                   onValueChange={(value) => updateRequestStatus(selectedRequest.id, value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-border">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border-border">
                     {statusOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -397,17 +425,24 @@ export function AdminRequests() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Resposta do Administrador</Label>
+              <div className="space-y-3 border border-border rounded-lg p-4">
+                <Label className="text-foreground font-semibold flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  Resposta do Administrador
+                </Label>
                 <Textarea
-                  placeholder="Digite sua resposta..."
+                  placeholder="Digite sua resposta para o cliente..."
                   value={adminResponse}
                   onChange={(e) => setAdminResponse(e.target.value)}
                   rows={4}
+                  className="border-border resize-none"
                 />
-                <Button onClick={saveAdminResponse} className="w-full">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Salvar Resposta
+                <Button 
+                  onClick={saveAdminResponse} 
+                  className="w-full bg-foreground text-background hover:bg-foreground/90"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Salvar Resposta e Resolver
                 </Button>
               </div>
             </div>

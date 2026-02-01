@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Eye, Truck, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Search, Eye, Truck, CheckCircle, XCircle, Clock, ShoppingCart, MapPin, User, Package } from 'lucide-react';
 
 interface Order {
   id: string;
@@ -49,12 +49,12 @@ interface Order {
 }
 
 const statusOptions = [
-  { value: 'pending', label: 'Pendente', icon: Clock, color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'approved', label: 'Aprovado', icon: CheckCircle, color: 'bg-green-100 text-green-700' },
-  { value: 'processing', label: 'Processando', icon: Truck, color: 'bg-blue-100 text-blue-700' },
-  { value: 'shipped', label: 'Enviado', icon: Truck, color: 'bg-purple-100 text-purple-700' },
-  { value: 'completed', label: 'Concluído', icon: CheckCircle, color: 'bg-emerald-100 text-emerald-700' },
-  { value: 'cancelled', label: 'Cancelado', icon: XCircle, color: 'bg-red-100 text-red-700' },
+  { value: 'pending', label: 'Pendente', icon: Clock, className: 'bg-warning/10 text-warning border-warning/20' },
+  { value: 'approved', label: 'Aprovado', icon: CheckCircle, className: 'bg-success/10 text-success border-success/20' },
+  { value: 'processing', label: 'Processando', icon: Package, className: 'bg-foreground/10 text-foreground border-foreground/20' },
+  { value: 'shipped', label: 'Enviado', icon: Truck, className: 'bg-foreground/10 text-foreground border-foreground/20' },
+  { value: 'completed', label: 'Concluído', icon: CheckCircle, className: 'bg-success/10 text-success border-success/20' },
+  { value: 'cancelled', label: 'Cancelado', icon: XCircle, className: 'bg-destructive/10 text-destructive border-destructive/20' },
 ];
 
 export function AdminOrders() {
@@ -180,7 +180,7 @@ export function AdminOrders() {
     if (!option) return <Badge variant="outline">{status}</Badge>;
 
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${option.color}`}>
+      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${option.className}`}>
         {option.label}
       </span>
     );
@@ -206,15 +206,15 @@ export function AdminOrders() {
             placeholder="Buscar por nome, email ou ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 border-border bg-background"
           />
         </div>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px] border-border bg-background">
             <SelectValue placeholder="Filtrar status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-border">
             <SelectItem value="all">Todos os status</SelectItem>
             {statusOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
@@ -225,49 +225,62 @@ export function AdminOrders() {
         </Select>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pedidos ({filteredOrders.length})</CardTitle>
+      <Card className="border-border bg-background">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5" />
+            Pedidos ({filteredOrders.length})
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading ? (
-            <div className="text-center py-8">Carregando...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin h-8 w-8 border-2 border-foreground border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-muted-foreground">Carregando...</p>
+            </div>
           ) : filteredOrders.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhum pedido encontrado
+            <div className="text-center py-12">
+              <ShoppingCart className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+              <p className="font-medium text-foreground">Nenhum pedido encontrado</p>
+              <p className="text-sm text-muted-foreground">Os pedidos aparecerão aqui quando forem realizados</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Pedido</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="text-muted-foreground font-semibold">Pedido</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Total</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Status</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Data</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-semibold">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-mono text-xs">
-                        {order.id.slice(0, 8)}...
+                    <TableRow key={order.id} className="border-border hover:bg-secondary/50">
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        #{order.id.slice(0, 8)}
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <p className="font-medium">{order.customer_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {order.customer_email}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-foreground/5 flex items-center justify-center">
+                            <span className="text-sm font-bold text-foreground">
+                              {order.customer_name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">{order.customer_name}</p>
+                            <p className="text-xs text-muted-foreground">{order.customer_email}</p>
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-bold text-foreground">
                         {formatCurrency(order.total_amount)}
                       </TableCell>
                       <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell className="text-sm">
+                      <TableCell className="text-sm text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString('pt-BR')}
                       </TableCell>
                       <TableCell className="text-right">
@@ -278,6 +291,7 @@ export function AdminOrders() {
                             setSelectedOrder(order);
                             setIsDetailOpen(true);
                           }}
+                          className="border-border hover:bg-secondary"
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           Ver
@@ -293,94 +307,99 @@ export function AdminOrders() {
       </Card>
 
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-border">
           <DialogHeader>
-            <DialogTitle>Detalhes do Pedido</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-foreground">Detalhes do Pedido</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-secondary/30 rounded-lg">
                 <div>
-                  <Label className="text-muted-foreground">ID do Pedido</Label>
-                  <p className="font-mono text-sm">{selectedOrder.id}</p>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">ID do Pedido</Label>
+                  <p className="font-mono text-sm text-foreground mt-1">#{selectedOrder.id}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Data</Label>
-                  <p>{new Date(selectedOrder.created_at).toLocaleString('pt-BR')}</p>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Data</Label>
+                  <p className="text-sm text-foreground mt-1">{new Date(selectedOrder.created_at).toLocaleString('pt-BR')}</p>
                 </div>
               </div>
 
-              <div className="border rounded-lg p-4 space-y-2">
-                <h4 className="font-semibold">Dados do Cliente</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="border border-border rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2 text-foreground font-semibold">
+                  <User className="h-4 w-4" />
+                  Dados do Cliente
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Nome</Label>
-                    <p>{selectedOrder.customer_name}</p>
+                    <Label className="text-xs text-muted-foreground">Nome</Label>
+                    <p className="text-foreground">{selectedOrder.customer_name}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Email</Label>
-                    <p>{selectedOrder.customer_email}</p>
+                    <Label className="text-xs text-muted-foreground">Email</Label>
+                    <p className="text-foreground">{selectedOrder.customer_email}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Telefone</Label>
-                    <p>{selectedOrder.customer_phone || '-'}</p>
+                    <Label className="text-xs text-muted-foreground">Telefone</Label>
+                    <p className="text-foreground">{selectedOrder.customer_phone || '-'}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">CPF/CNPJ</Label>
-                    <p>{selectedOrder.customer_cpf || '-'}</p>
+                    <Label className="text-xs text-muted-foreground">CPF</Label>
+                    <p className="text-foreground">{selectedOrder.customer_cpf || '-'}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="border rounded-lg p-4 space-y-2">
-                <h4 className="font-semibold">Endereço de Entrega</h4>
+              <div className="border border-border rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2 text-foreground font-semibold">
+                  <MapPin className="h-4 w-4" />
+                  Endereço de Entrega
+                </div>
                 {selectedOrder.shipping_address && (
-                  <div className="text-sm">
-                    <p>
-                      {selectedOrder.shipping_address.street}, {selectedOrder.shipping_address.number}
-                    </p>
+                  <div className="text-sm text-foreground">
+                    <p>{selectedOrder.shipping_address.street}, {selectedOrder.shipping_address.number}</p>
                     {selectedOrder.shipping_address.complement && (
-                      <p>{selectedOrder.shipping_address.complement}</p>
+                      <p className="text-muted-foreground">{selectedOrder.shipping_address.complement}</p>
                     )}
-                    <p>
-                      {selectedOrder.shipping_address.neighborhood} - {selectedOrder.shipping_address.city}/{selectedOrder.shipping_address.state}
-                    </p>
-                    <p>CEP: {selectedOrder.shipping_address.zipCode}</p>
+                    <p>{selectedOrder.shipping_address.neighborhood} - {selectedOrder.shipping_address.city}/{selectedOrder.shipping_address.state}</p>
+                    <p className="text-muted-foreground">CEP: {selectedOrder.shipping_address.zipCode}</p>
                   </div>
                 )}
               </div>
 
-              <div className="border rounded-lg p-4 space-y-2">
-                <h4 className="font-semibold">Itens do Pedido</h4>
+              <div className="border border-border rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2 text-foreground font-semibold">
+                  <Package className="h-4 w-4" />
+                  Itens do Pedido
+                </div>
                 <div className="space-y-2">
                   {selectedOrder.items?.map((item: any, index: number) => (
-                    <div key={index} className="flex justify-between text-sm border-b pb-2">
+                    <div key={index} className="flex justify-between text-sm border-b border-border pb-2 last:border-0">
                       <div>
-                        <p className="font-medium">{item.name}</p>
+                        <p className="font-medium text-foreground">{item.name}</p>
                         <p className="text-muted-foreground">Qtd: {item.quantity}</p>
                       </div>
-                      <p className="font-medium">
+                      <p className="font-semibold text-foreground">
                         {formatCurrency(item.price * item.quantity)}
                       </p>
                     </div>
                   ))}
-                  <div className="flex justify-between font-bold pt-2">
-                    <span>Total</span>
-                    <span>{formatCurrency(selectedOrder.total_amount)}</span>
+                  <div className="flex justify-between font-bold pt-3 text-lg border-t border-border">
+                    <span className="text-foreground">Total</span>
+                    <span className="text-foreground">{formatCurrency(selectedOrder.total_amount)}</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Status do Pedido</Label>
+                <Label className="text-foreground font-semibold">Status do Pedido</Label>
                 <Select
                   value={selectedOrder.status}
                   onValueChange={(value) => updateOrderStatus(selectedOrder.id, value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-border">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border-border">
                     {statusOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -391,7 +410,7 @@ export function AdminOrders() {
               </div>
 
               <div className="space-y-2">
-                <Label>Observações Internas</Label>
+                <Label className="text-foreground font-semibold">Observações Internas</Label>
                 <Textarea
                   placeholder="Adicione observações sobre este pedido..."
                   defaultValue={selectedOrder.notes || ''}
@@ -400,6 +419,8 @@ export function AdminOrders() {
                       updateOrderNotes(selectedOrder.id, e.target.value);
                     }
                   }}
+                  className="border-border resize-none"
+                  rows={3}
                 />
               </div>
             </div>
