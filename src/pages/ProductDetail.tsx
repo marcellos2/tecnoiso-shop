@@ -1,11 +1,11 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, Truck, ShieldCheck, Clock, CheckCircle2, QrCode, CreditCard, Star, Package, RotateCcw } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Truck, ShieldCheck, Clock, CheckCircle2, QrCode, CreditCard, Star, Package, RotateCcw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/contexts/CartContext";
-import { products } from "@/data/products";
+import { useProduct, useProducts } from "@/hooks/useProducts";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
@@ -15,9 +15,23 @@ export default function ProductDetail() {
   const { id } = useParams();
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
-
-  const product = products.find((p) => p.id === id);
+  
+  const { product, loading } = useProduct(id || '');
+  const { products } = useProducts();
   const relatedProducts = products.filter((p) => p.category === product?.category && p.id !== id).slice(0, 4);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="container pt-56 md:pt-52 pb-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">Carregando produto...</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   if (!product) {
     return (

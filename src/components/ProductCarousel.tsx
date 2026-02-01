@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { products } from '@/data/products';
+import { useProducts } from '@/hooks/useProducts';
 
 const ProductCarousel = () => {
+  const { products, loading } = useProducts();
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: 'start',
@@ -37,6 +38,16 @@ const ProductCarousel = () => {
   };
 
   const displayProducts = products.slice(0, 8);
+
+  if (loading) {
+    return (
+      <section className="container py-10">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="container py-10">
