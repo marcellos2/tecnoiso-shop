@@ -22,7 +22,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Package, ImageIcon } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -144,7 +144,7 @@ export function AdminProducts() {
       original_price: product.original_price?.toString() || '',
       image_url: product.image_url || '',
       category: product.category,
-      in_stock: product.in_stock,
+      in_stock: product.in_stock ?? true,
       discount: product.discount?.toString() || '',
     });
     setIsDialogOpen(true);
@@ -210,7 +210,7 @@ export function AdminProducts() {
             placeholder="Buscar produtos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 border-border bg-background"
           />
         </div>
 
@@ -219,41 +219,43 @@ export function AdminProducts() {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-foreground text-background hover:bg-foreground/90">
               <Plus className="h-4 w-4 mr-2" />
               Novo Produto
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-border">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-xl font-bold text-foreground">
                 {editingProduct ? 'Editar Produto' : 'Novo Produto'}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome *</Label>
+                  <Label htmlFor="name" className="text-foreground font-medium">Nome *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
+                    className="border-border"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Categoria *</Label>
+                  <Label htmlFor="category" className="text-foreground font-medium">Categoria *</Label>
                   <Input
                     id="category"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     required
+                    className="border-border"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Preço *</Label>
+                  <Label htmlFor="price" className="text-foreground font-medium">Preço *</Label>
                   <Input
                     id="price"
                     type="number"
@@ -261,65 +263,72 @@ export function AdminProducts() {
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     required
+                    className="border-border"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="original_price">Preço Original</Label>
+                  <Label htmlFor="original_price" className="text-foreground font-medium">Preço Original</Label>
                   <Input
                     id="original_price"
                     type="number"
                     step="0.01"
                     value={formData.original_price}
                     onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+                    className="border-border"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="discount">Desconto (%)</Label>
+                  <Label htmlFor="discount" className="text-foreground font-medium">Desconto (%)</Label>
                   <Input
                     id="discount"
                     type="number"
                     value={formData.discount}
                     onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
+                    className="border-border"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="image_url">URL da Imagem</Label>
+                  <Label htmlFor="image_url" className="text-foreground font-medium">URL da Imagem</Label>
                   <Input
                     id="image_url"
                     value={formData.image_url}
                     onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                    className="border-border"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="description" className="text-foreground font-medium">Descrição</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
+                  className="border-border resize-none"
                 />
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3 p-4 border border-border rounded-lg bg-secondary/30">
                 <Switch
                   id="in_stock"
                   checked={formData.in_stock}
                   onCheckedChange={(checked) => setFormData({ ...formData, in_stock: checked })}
                 />
-                <Label htmlFor="in_stock">Em estoque</Label>
+                <Label htmlFor="in_stock" className="text-foreground font-medium cursor-pointer">
+                  Produto em estoque
+                </Label>
               </div>
 
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="border-border">
                   Cancelar
                 </Button>
-                <Button type="submit">
-                  {editingProduct ? 'Atualizar' : 'Criar'}
+                <Button type="submit" className="bg-foreground text-background hover:bg-foreground/90">
+                  {editingProduct ? 'Atualizar' : 'Criar Produto'}
                 </Button>
               </div>
             </form>
@@ -327,50 +336,71 @@ export function AdminProducts() {
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Produtos ({filteredProducts.length})</CardTitle>
+      <Card className="border-border bg-background">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Produtos ({filteredProducts.length})
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading ? (
-            <div className="text-center py-8">Carregando...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin h-8 w-8 border-2 border-foreground border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-muted-foreground">Carregando...</p>
+            </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhum produto encontrado
+            <div className="text-center py-12">
+              <Package className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+              <p className="font-medium text-foreground">Nenhum produto encontrado</p>
+              <p className="text-sm text-muted-foreground">Adicione seu primeiro produto clicando no botão acima</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Produto</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Estoque</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="text-muted-foreground font-semibold">Produto</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Categoria</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Preço</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold">Estoque</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-semibold">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
+                    <TableRow key={product.id} className="border-border hover:bg-secondary/50">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {product.image_url && (
+                          {product.image_url ? (
                             <img
                               src={product.image_url}
                               alt={product.name}
-                              className="h-10 w-10 rounded object-cover"
+                              className="h-12 w-12 rounded-lg object-cover border border-border"
                             />
+                          ) : (
+                            <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center border border-border">
+                              <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                            </div>
                           )}
                           <div>
-                            <p className="font-medium line-clamp-1">{product.name}</p>
+                            <p className="font-semibold text-foreground line-clamp-1">{product.name}</p>
+                            {product.discount && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-foreground text-background font-medium">
+                                -{product.discount}%
+                              </span>
+                            )}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{product.category}</TableCell>
+                      <TableCell>
+                        <span className="text-sm px-2.5 py-1 rounded-full bg-secondary text-foreground font-medium">
+                          {product.category}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{formatCurrency(product.price)}</p>
+                          <p className="font-bold text-foreground">{formatCurrency(product.price)}</p>
                           {product.original_price && (
                             <p className="text-xs text-muted-foreground line-through">
                               {formatCurrency(product.original_price)}
@@ -380,10 +410,10 @@ export function AdminProducts() {
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs ${
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
                             product.in_stock
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
+                              ? 'bg-success/10 text-success border-success/20'
+                              : 'bg-destructive/10 text-destructive border-destructive/20'
                           }`}
                         >
                           {product.in_stock ? 'Disponível' : 'Esgotado'}
@@ -395,13 +425,15 @@ export function AdminProducts() {
                             variant="outline"
                             size="icon"
                             onClick={() => handleEdit(product)}
+                            className="border-border hover:bg-secondary"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="destructive"
+                            variant="outline"
                             size="icon"
                             onClick={() => handleDelete(product.id)}
+                            className="border-destructive/30 text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

@@ -19,7 +19,8 @@ import {
   MessageSquare, 
   Settings,
   LogOut,
-  Home
+  Home,
+  Store
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import logo from '@/assets/logo.png';
@@ -30,11 +31,11 @@ interface AdminSidebarProps {
 }
 
 const menuItems = [
-  { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
-  { id: 'products', title: 'Produtos', icon: Package },
-  { id: 'orders', title: 'Pedidos', icon: ShoppingCart },
-  { id: 'requests', title: 'Solicitações', icon: MessageSquare },
-  { id: 'settings', title: 'Configurações', icon: Settings },
+  { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard, description: 'Visão geral' },
+  { id: 'products', title: 'Produtos', icon: Package, description: 'Gerenciar catálogo' },
+  { id: 'orders', title: 'Pedidos', icon: ShoppingCart, description: 'Acompanhar vendas' },
+  { id: 'requests', title: 'Solicitações', icon: MessageSquare, description: 'Atender clientes' },
+  { id: 'settings', title: 'Configurações', icon: Settings, description: 'Minha conta' },
 ];
 
 export function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarProps) {
@@ -46,27 +47,42 @@ export function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r">
-      <SidebarHeader className="p-4 border-b">
-        <div className="flex items-center gap-2">
-          <img src={logo} alt="Tecnoiso" className="h-8 w-auto" />
-          <span className="font-bold text-lg">Admin</span>
+    <Sidebar className="border-r border-border bg-background">
+      <SidebarHeader className="p-5 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="bg-foreground rounded-lg p-1.5">
+            <img src={logo} alt="Tecnoiso" className="h-7 w-auto invert" />
+          </div>
+          <div>
+            <span className="font-bold text-foreground text-lg tracking-tight">Tecnoiso</span>
+            <p className="text-xs text-muted-foreground">Painel Admin</p>
+          </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-3 py-4">
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
+            Menu Principal
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => setActiveTab(item.id)}
-                    className={activeTab === item.id ? 'bg-primary/10 text-primary' : ''}
+                    className={`
+                      w-full px-3 py-2.5 rounded-lg transition-all duration-200
+                      ${activeTab === item.id 
+                        ? 'bg-foreground text-background font-semibold shadow-sm' 
+                        : 'text-foreground hover:bg-secondary'
+                      }
+                    `}
                   >
-                    <item.icon className="h-4 w-4 mr-2" />
-                    <span>{item.title}</span>
+                    <item.icon className={`h-5 w-5 mr-3 ${activeTab === item.id ? 'text-background' : 'text-muted-foreground'}`} />
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm">{item.title}</span>
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -75,22 +91,22 @@ export function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t space-y-2">
+      <SidebarFooter className="p-4 border-t border-border space-y-2">
         <Button
           variant="outline"
-          className="w-full justify-start"
+          className="w-full justify-start border-border hover:bg-secondary hover:text-foreground transition-colors"
           onClick={() => navigate('/')}
         >
-          <Home className="h-4 w-4 mr-2" />
-          Ir para o Site
+          <Store className="h-4 w-4 mr-2" />
+          Ir para a Loja
         </Button>
         <Button
-          variant="destructive"
-          className="w-full justify-start"
+          variant="ghost"
+          className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4 mr-2" />
-          Sair
+          Sair da Conta
         </Button>
       </SidebarFooter>
     </Sidebar>

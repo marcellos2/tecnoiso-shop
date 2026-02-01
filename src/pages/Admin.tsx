@@ -27,7 +27,10 @@ const Admin = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-foreground" />
+          <p className="text-muted-foreground font-medium">Carregando painel...</p>
+        </div>
       </div>
     );
   }
@@ -53,22 +56,34 @@ const Admin = () => {
     }
   };
 
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case 'dashboard': return 'Dashboard';
+      case 'products': return 'Gerenciar Produtos';
+      case 'orders': return 'Pedidos';
+      case 'requests': return 'Solicitações de Clientes';
+      case 'settings': return 'Configurações';
+      default: return 'Dashboard';
+    }
+  };
+
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-secondary/30">
         <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="flex-1 overflow-auto">
-          <header className="h-14 border-b flex items-center px-4 bg-card sticky top-0 z-10">
-            <SidebarTrigger className="mr-4" />
-            <h1 className="text-lg font-semibold">
-              {activeTab === 'dashboard' && 'Dashboard'}
-              {activeTab === 'products' && 'Produtos'}
-              {activeTab === 'orders' && 'Pedidos'}
-              {activeTab === 'requests' && 'Solicitações'}
-              {activeTab === 'settings' && 'Configurações'}
-            </h1>
+          <header className="h-16 border-b border-border flex items-center px-6 bg-background sticky top-0 z-10 shadow-sm">
+            <SidebarTrigger className="mr-4 hover:bg-secondary transition-colors rounded-lg p-2" />
+            <div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">
+                {getPageTitle()}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Painel Administrativo Tecnoiso
+              </p>
+            </div>
           </header>
-          <div className="p-6">
+          <div className="p-6 lg:p-8">
             {renderContent()}
           </div>
         </main>
