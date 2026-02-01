@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, MapPin, ChevronDown, User, Heart, Menu } from 'lucide-react';
+import { Search, ShoppingCart, MapPin, ChevronDown, User, Heart, Menu, Settings } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { CartSidebar } from './CartSidebar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -18,6 +18,7 @@ const Header = () => {
   // Estados para autenticação e animação
   const [user, setUser] = useState<any>(null);
   const [userName, setUserName] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   
   // Check if we're on a product page
@@ -43,7 +44,18 @@ const Header = () => {
       if (session?.user) {
         setUser(session.user);
         extractUserName(session.user);
+        checkAdminStatus(session.user.id);
       }
+    };
+
+    const checkAdminStatus = async (userId: string) => {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle();
+      setIsAdmin(!!data);
     };
 
     checkUser();
@@ -55,6 +67,7 @@ const Header = () => {
         
         setTimeout(() => {
           extractUserName(session.user);
+          checkAdminStatus(session.user.id);
           setTimeout(() => {
             setIsAnimating(false);
           }, 300);
@@ -62,6 +75,7 @@ const Header = () => {
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setUserName('');
+        setIsAdmin(false);
         setIsAnimating(false);
       }
     });
@@ -128,6 +142,12 @@ const Header = () => {
                           <div className="py-2 font-semibold text-accent">
                             Olá, {userName}!
                           </div>
+                          {isAdmin && (
+                            <Link to="/admin" className="flex items-center gap-2 py-2 hover:text-accent transition-colors">
+                              <Settings className="w-4 h-4" />
+                              Painel Admin
+                            </Link>
+                          )}
                           <button 
                             onClick={async () => {
                               await supabase.auth.signOut();
@@ -213,6 +233,15 @@ const Header = () => {
                     >
                       Olá, {userName}
                     </span>
+                    {isAdmin && (
+                      <Link 
+                        to="/admin" 
+                        className="hover:text-accent transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <Settings className="w-3 h-3" />
+                        Admin
+                      </Link>
+                    )}
                     <button 
                       type="button"
                       onClick={async () => {
