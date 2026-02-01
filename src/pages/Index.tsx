@@ -4,10 +4,9 @@ import HeroCarousel from '@/components/HeroCarousel';
 import FeatureCards from '@/components/FeatureCards';
 import ProductCarousel from '@/components/ProductCarousel';
 import { ProductCard } from '@/components/ProductCard';
-import { useProducts } from '@/hooks/useProducts';
-import { categories } from '@/data/products';
+import { products, categories } from '@/data/products';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Gauge, Thermometer, Scale, Ruler, CircleDot, Zap, Loader2 } from 'lucide-react';
+import { ChevronRight, Gauge, Thermometer, Scale, Ruler, CircleDot, Zap } from 'lucide-react';
 
 const categoryIcons: Record<string, React.ElementType> = {
   Gauge,
@@ -19,7 +18,6 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 const Index = () => {
-  const { products, loading } = useProducts();
   const featuredProducts = products.slice(0, 8);
 
   return (
