@@ -234,13 +234,14 @@ const Header = () => {
                       Olá, {userName}
                     </span>
                     {isAdmin && (
-                      <Link 
-                        to="/admin" 
-                        className="hover:text-accent transition-colors cursor-pointer flex items-center gap-1"
+                      <button
+                        type="button"
+                        onClick={() => navigate('/admin')}
+                        className="hover:text-accent transition-colors cursor-pointer flex items-center gap-1 bg-transparent border-none p-0"
                       >
                         <Settings className="w-3 h-3" />
-                        Admin
-                      </Link>
+                        Administrador
+                      </button>
                     )}
                     <button 
                       type="button"
