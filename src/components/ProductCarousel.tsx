@@ -3,8 +3,10 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { products } from '@/data/products';
+import { useProducts } from '@/hooks/useProducts';
 
 const ProductCarousel = () => {
+  const { products: dbProducts } = useProducts();
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: 'start',
@@ -36,7 +38,8 @@ const ProductCarousel = () => {
     }).format(price);
   };
 
-  const displayProducts = products.slice(0, 8);
+  const catalog = dbProducts.length > 0 ? dbProducts : products;
+  const displayProducts = catalog.slice(0, 8);
 
   return (
     <section className="container py-10">
