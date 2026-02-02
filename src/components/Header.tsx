@@ -111,7 +111,7 @@ const Header = () => {
   return (
     <>
       {/* Header Fixo no Topo */}
-      <div className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-300 ${isProductPage ? 'bg-white shadow-md' : (isScrolled ? 'bg-white shadow-md' : 'bg-transparent')}`}>
+      <div className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-300 ${isProductPage ? 'bg-white shadow-md' : (isScrolled ? 'bg-white shadow-md' : 'bg-transparent')}`}>
         <div className="container">
           {/* Linha Principal */}
           <div className="flex items-center justify-between py-3 gap-4">
@@ -148,11 +148,15 @@ const Header = () => {
                               Painel Admin
                             </Link>
                           )}
-                          <button 
-                            onClick={async () => {
-                              await supabase.auth.signOut();
-                              navigate('/');
-                            }}
+                           <button 
+                             onClick={async () => {
+                               try {
+                                 await supabase.auth.signOut();
+                               } finally {
+                                 // hard refresh to guarantee UI update
+                                 window.location.assign('/');
+                               }
+                             }}
                             className="block w-full text-left py-2 hover:text-accent transition-colors"
                           >
                             Sair
@@ -243,12 +247,15 @@ const Header = () => {
                         Administrador
                       </button>
                     )}
-                    <button 
-                      type="button"
-                      onClick={async () => {
-                        await supabase.auth.signOut();
-                        navigate('/');
-                      }}
+                     <button 
+                       type="button"
+                       onClick={async () => {
+                         try {
+                           await supabase.auth.signOut();
+                         } finally {
+                           window.location.assign('/');
+                         }
+                       }}
                       className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
                     >
                       Sair

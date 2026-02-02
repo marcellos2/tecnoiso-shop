@@ -10,14 +10,38 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { useState } from "react";
+import { useProduct, useProducts } from "@/hooks/useProducts";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
 
-  const product = products.find((p) => p.id === id);
-  const relatedProducts = products.filter((p) => p.category === product?.category && p.id !== id).slice(0, 4);
+  const { products: dbProducts } = useProducts();
+  const { product: dbProduct, loading: dbLoading } = useProduct(id);
+
+  const hasDbCatalog = dbProducts.length > 0;
+  const product = hasDbCatalog ? dbProduct : products.find((p) => p.id === id) ?? null;
+  const relatedProducts = hasDbCatalog
+    ? dbProducts
+        .filter((p) => p.category === product?.category && p.id !== id)
+        .slice(0, 4)
+    : products.filter((p) => p.category === product?.category && p.id !== id).slice(0, 4);
+
+  if (hasDbCatalog && dbLoading) {
+    return (
+      <>
+        <Header />
+        <main className="container pt-56 md:pt-52 pb-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin h-10 w-10 border-2 border-foreground border-t-transparent rounded-full" />
+            <p className="text-muted-foreground font-medium">Carregando produto...</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   if (!product) {
     return (

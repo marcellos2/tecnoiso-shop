@@ -102,15 +102,15 @@ const HeroCarousel = () => {
   };
 
   return (
-    <section className="relative overflow-hidden pointer-events-none" style={{ marginTop: '-180px', paddingTop: '180px' }}>
-      <div ref={emblaRef} className="overflow-hidden pointer-events-auto">
+    <section className="relative overflow-hidden">
+      <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {bannerSlides.map((slide, slideIndex) => {
             const isActive = selectedIndex === slideIndex;
             
             return (
-              <div key={slide.id} className="flex-[0_0_100%] min-w-0">
-                <div className={`relative ${slide.bgColor} overflow-hidden`} style={{ paddingTop: '180px', paddingBottom: '120px', minHeight: '550px' }}>
+               <div key={slide.id} className="flex-[0_0_100%] min-w-0">
+                 <div className={`relative ${slide.bgColor} overflow-hidden`} style={{ paddingBottom: '120px', minHeight: '550px' }}>
                   {/* Background decorations */}
                   <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className={`absolute -top-20 -right-20 w-64 h-64 md:w-96 md:h-96 rounded-full bg-white/10 transition-all duration-[2000ms] ease-out ${isActive ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} style={{ transitionDelay: '200ms' }} />

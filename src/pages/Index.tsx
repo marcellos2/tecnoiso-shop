@@ -7,6 +7,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { products, categories } from '@/data/products';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Gauge, Thermometer, Scale, Ruler, CircleDot, Zap } from 'lucide-react';
+import { useProducts } from '@/hooks/useProducts';
 
 const categoryIcons: Record<string, React.ElementType> = {
   Gauge,
@@ -18,13 +19,15 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 const Index = () => {
-  const featuredProducts = products.slice(0, 8);
+  const { products: dbProducts } = useProducts();
+  const catalog = dbProducts.length > 0 ? dbProducts : products;
+  const featuredProducts = catalog.slice(0, 8);
 
   return (
     <div className="min-h-screen bg-muted">
       <Header />
 
-      <main>
+      <main className="pt-44 md:pt-40">
         {/* Hero Carousel */}
         <HeroCarousel />
 
@@ -32,14 +35,14 @@ const Index = () => {
           <FeatureCards />
 
           {/* Product Carousel - Ofertas */}
-          <ProductCarousel />
+            <ProductCarousel />
 
           {/* Oferta do Dia */}
           <section className="container py-8">
             <div className="bg-background rounded-lg p-6 border border-border">
               <h2 className="text-xl font-bold text-foreground mb-6">Mais Vendidos</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {products.slice(0, 4).map((product) => (
+                {catalog.slice(0, 4).map((product) => (
                   <Link key={product.id} to={`/produto/${product.id}`} className="group">
                     <div className="bg-muted rounded-lg p-4 group-hover:shadow-md transition-shadow border border-transparent group-hover:border-accent/20">
                       <div className="aspect-square mb-3">
