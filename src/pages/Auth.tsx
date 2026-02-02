@@ -21,32 +21,36 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Verifica se já existe uma sessão
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        navigate('/');
-      }
-    };
-    
-    checkSession();
+    let isMounted = true;
 
-    // Escuta mudanças no estado de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log('User signed in:', session.user);
-        toast({
-          title: 'Bem-vindo!',
-          description: 'Login realizado com sucesso',
-        });
+    // FIRST check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (isMounted && session?.user) {
         navigate('/');
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+    // THEN set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!isMounted) return;
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Defer navigation to avoid deadlock
+          setTimeout(() => {
+            if (isMounted) {
+              navigate('/');
+            }
+          }, 0);
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
