@@ -23,14 +23,7 @@ const Auth = () => {
   useEffect(() => {
     let isMounted = true;
 
-    // FIRST check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (isMounted && session?.user) {
-        navigate('/');
-      }
-    });
-
-    // THEN set up auth state listener
+    // IMPORTANT: listener FIRST, then check for existing session.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!isMounted) return;
@@ -45,6 +38,13 @@ const Auth = () => {
         }
       }
     );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (isMounted && session?.user) {
+        navigate('/');
+      }
+    });
 
     return () => {
       isMounted = false;

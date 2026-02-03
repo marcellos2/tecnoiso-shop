@@ -54,22 +54,25 @@ export const useAdmin = () => {
       await checkAdminStatus(sessionUser.id, requestId);
     };
 
-    // Initial session
-    (async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!isMounted) return;
-      setAuthLoading(false);
-      await loadForSession(session?.user ?? null);
-    })();
-
+    // IMPORTANT: listener first, then getSession.
+    // Also: never make the auth-state callback async or call Supabase inside it.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!isMounted) return;
       setAuthLoading(false);
-      await loadForSession(session?.user ?? null);
+      const sessionUser = session?.user ?? null;
+      setTimeout(() => {
+        if (!isMounted) return;
+        void loadForSession(sessionUser);
+      }, 0);
+    });
+
+    // Initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+      setAuthLoading(false);
+      void loadForSession(session?.user ?? null);
     });
 
     return () => {

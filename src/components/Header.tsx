@@ -39,15 +39,6 @@ const Header = () => {
 
   // Verificar sessão e monitorar autenticação
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        extractUserName(session.user);
-        checkAdminStatus(session.user.id);
-      }
-    };
-
     const checkAdminStatus = async (userId: string) => {
       const { data } = await supabase
         .from('user_roles')
@@ -58,8 +49,7 @@ const Header = () => {
       setIsAdmin(!!data);
     };
 
-    checkUser();
-
+    // IMPORTANT: listener first, then getSession (prevents missing events)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
@@ -77,6 +67,14 @@ const Header = () => {
         setUserName('');
         setIsAdmin(false);
         setIsAnimating(false);
+      }
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        extractUserName(session.user);
+        void checkAdminStatus(session.user.id);
       }
     });
 
