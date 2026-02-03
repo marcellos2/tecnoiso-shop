@@ -25,9 +25,9 @@ const bannerSlides = [
     bgColor: 'bg-gradient-to-br from-yellow-300 via-yellow-200 to-yellow-100',
     textColor: 'text-gray-900',
     products: [
-      { id: '1', image: manometro1, name: 'Manômetro Digital' }, // manometro-1.png
-      { id: '5', image: multimetro1, name: 'Multímetro Digital' }, // multimetro-1.png
-      { id: '4', image: paquimetro1, name: 'Paquímetro Digital' }, // paquimetro-1.png
+      { id: '1', image: manometro1, name: 'Manômetro Digital' },
+      { id: '5', image: multimetro1, name: 'Multímetro Digital' },
+      { id: '4', image: paquimetro1, name: 'Paquímetro Digital' },
     ],
   },
   {
@@ -40,9 +40,9 @@ const bannerSlides = [
     bgColor: 'bg-gradient-to-br from-blue-400 via-blue-300 to-blue-200',
     textColor: 'text-gray-900',
     products: [
-      { id: '8', image: termoigrometro1, name: 'Termo-Higrômetro' }, // termoigrometro1.png
-      { id: '2', image: termometro1, name: 'Termômetro Digital' }, // termometro-1.png
-      { id: '9', image: termometrodeumidade1, name: 'Termômetro de Umidade' }, // termometrodeumidade1.png
+      { id: '8', image: termoigrometro1, name: 'Termo-Higrômetro' },
+      { id: '2', image: termometro1, name: 'Termômetro Digital' },
+      { id: '9', image: termometrodeumidade1, name: 'Termômetro de Umidade' },
     ],
   },
   {
@@ -55,9 +55,9 @@ const bannerSlides = [
     bgColor: 'bg-gradient-to-br from-purple-400 via-purple-300 to-pink-200',
     textColor: 'text-gray-900',
     products: [
-      { id: '3', image: balanca1, name: 'Balança de Precisão' }, // balanca-1.png
-      { id: '4', image: paquimetro1, name: 'Paquímetro Digital' }, // paquimetro-1.png
-      { id: '5', image: multimetro1, name: 'Multímetro Digital' }, // multimetro-1.png
+      { id: '3', image: balanca1, name: 'Balança de Precisão' },
+      { id: '4', image: paquimetro1, name: 'Paquímetro Digital' },
+      { id: '5', image: multimetro1, name: 'Multímetro Digital' },
     ],
   },
 ];
@@ -110,7 +110,7 @@ const HeroCarousel = () => {
             
             return (
                <div key={slide.id} className="flex-[0_0_100%] min-w-0">
-                 <div className={`relative ${slide.bgColor} overflow-hidden`} style={{ paddingBottom: '120px', minHeight: '550px' }}>
+                 <div className={`relative ${slide.bgColor} overflow-hidden`} style={{ paddingTop: '100px', paddingBottom: '120px', minHeight: '550px' }}>
                   {/* Background decorations */}
                   <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className={`absolute -top-20 -right-20 w-64 h-64 md:w-96 md:h-96 rounded-full bg-white/10 transition-all duration-[2000ms] ease-out ${isActive ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} style={{ transitionDelay: '200ms' }} />
