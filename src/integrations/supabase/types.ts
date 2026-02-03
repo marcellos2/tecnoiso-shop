@@ -241,7 +241,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      demote_to_customer: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      promote_to_admin: { Args: { target_user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "customer"
