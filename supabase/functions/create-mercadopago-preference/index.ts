@@ -1,44 +1,51 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image?: string;
-}
+// Input validation schemas
+const CartItemSchema = z.object({
+  id: z.string().min(1, "ID do item é obrigatório").max(100, "ID do item muito longo"),
+  name: z.string().min(1, "Nome do item é obrigatório").max(200, "Nome do item muito longo"),
+  price: z.number().positive("Preço deve ser positivo").max(999999.99, "Preço excede o limite"),
+  quantity: z.number().int("Quantidade deve ser inteira").positive("Quantidade deve ser positiva").max(100, "Quantidade máxima excedida"),
+  image: z.string().url("URL de imagem inválida").max(500, "URL de imagem muito longa").optional(),
+});
 
-interface CustomerData {
-  name: string;
-  email: string;
-  phone?: string;
-  cpf?: string;
-}
+const CustomerSchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
+  email: z.string().email("Email inválido").max(255, "Email muito longo"),
+  phone: z.string().min(8, "Telefone muito curto").max(20, "Telefone muito longo").optional(),
+  cpf: z.string().regex(/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/, "CPF inválido").optional(),
+});
 
-interface AddressData {
-  cep: string;
-  street: string;
-  number: string;
-  complement?: string;
-  neighborhood: string;
-  city: string;
-  state: string;
-}
+const AddressSchema = z.object({
+  cep: z.string().regex(/^\d{5}-?\d{3}$/, "CEP inválido"),
+  street: z.string().min(1, "Rua é obrigatória").max(200, "Rua muito longa"),
+  number: z.string().min(1, "Número é obrigatório").max(10, "Número muito longo"),
+  complement: z.string().max(100, "Complemento muito longo").optional(),
+  neighborhood: z.string().min(1, "Bairro é obrigatório").max(100, "Bairro muito longo"),
+  city: z.string().min(1, "Cidade é obrigatória").max(100, "Cidade muito longa"),
+  state: z.string().length(2, "Estado deve ter 2 caracteres"),
+});
 
-interface RequestBody {
-  items: CartItem[];
-  customer: CustomerData;
-  address: AddressData;
-  successUrl: string;
-  failureUrl: string;
-  pendingUrl: string;
-}
+const RequestSchema = z.object({
+  items: z.array(CartItemSchema).min(1, "Carrinho vazio").max(50, "Limite de 50 itens excedido"),
+  customer: CustomerSchema,
+  address: AddressSchema,
+  successUrl: z.string().url("URL de sucesso inválida").max(500, "URL muito longa"),
+  failureUrl: z.string().url("URL de falha inválida").max(500, "URL muito longa"),
+  pendingUrl: z.string().url("URL de pendente inválida").max(500, "URL muito longa"),
+});
+
+type CartItem = z.infer<typeof CartItemSchema>;
+type CustomerData = z.infer<typeof CustomerSchema>;
+type AddressData = z.infer<typeof AddressSchema>;
+type RequestBody = z.infer<typeof RequestSchema>;
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -85,30 +92,27 @@ serve(async (req) => {
       throw new Error('MERCADOPAGO_ACCESS_TOKEN not configured');
     }
 
-    const body: RequestBody = await req.json();
+    // Parse and validate request body with Zod
+    let body: RequestBody;
+    try {
+      const rawBody = await req.json();
+      body = RequestSchema.parse(rawBody);
+      console.log('Request validated successfully');
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const errorMessages = validationError.errors.map(e => 
+          `${e.path.join('.')}: ${e.message}`
+        ).join('; ');
+        console.error('Validation error:', errorMessages);
+        return new Response(
+          JSON.stringify({ error: 'Dados inválidos', details: errorMessages }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+      throw validationError;
+    }
+
     const { items, customer, address, successUrl, failureUrl, pendingUrl } = body;
-
-    // Validate required fields
-    if (!items || items.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Carrinho vazio' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    if (!customer?.name || !customer?.email) {
-      return new Response(
-        JSON.stringify({ error: 'Dados do cliente incompletos' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    if (!address?.cep || !address?.street || !address?.city || !address?.state) {
-      return new Response(
-        JSON.stringify({ error: 'Endereço incompleto' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
 
     // Calculate total amount
     const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
