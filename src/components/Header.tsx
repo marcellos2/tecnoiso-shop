@@ -50,23 +50,27 @@ const Header = () => {
     };
 
     // IMPORTANT: listener first, then getSession (prevents missing events)
+    // NOTE: after OAuth redirects, Supabase often emits INITIAL_SESSION (not SIGNED_IN).
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUser(session.user);
-        setIsAnimating(true);
-        
-        setTimeout(() => {
-          extractUserName(session.user);
-          checkAdminStatus(session.user.id);
-          setTimeout(() => {
-            setIsAnimating(false);
-          }, 300);
-        }, 300);
-      } else if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT') {
         setUser(null);
         setUserName('');
         setIsAdmin(false);
         setIsAnimating(false);
+        return;
+      }
+
+      if (session?.user) {
+        setUser(session.user);
+        setIsAnimating(true);
+
+        setTimeout(() => {
+          extractUserName(session.user);
+          void checkAdminStatus(session.user.id);
+          setTimeout(() => {
+            setIsAnimating(false);
+          }, 300);
+        }, 300);
       }
     });
 
