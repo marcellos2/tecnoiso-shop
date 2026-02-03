@@ -28,7 +28,8 @@ const Auth = () => {
       (event, session) => {
         if (!isMounted) return;
         
-        if (event === 'SIGNED_IN' && session?.user) {
+        // After OAuth redirects / hard refresh, we often get INITIAL_SESSION.
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           // Defer navigation to avoid deadlock
           setTimeout(() => {
             if (isMounted) {
@@ -140,7 +141,8 @@ const Auth = () => {
       console.log('Iniciando login com Google via Lovable Cloud...');
       
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        // Use a dedicated callback route so we can always finalize the session deterministically.
+        redirect_uri: `${window.location.origin}/auth/callback`,
       });
 
       if (error) {

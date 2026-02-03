@@ -10,13 +10,27 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Pega os parâmetros da URL
+        const redirectAfterLogin = async (sessionUserId: string) => {
+          // Decide destino: admin vai direto pro painel.
+          const { data: isAdmin, error: adminErr } = await supabase.rpc('is_admin', {
+            _user_id: sessionUserId,
+          });
+
+          if (adminErr) {
+            console.error('Erro ao checar admin:', adminErr);
+            navigate('/', { replace: true });
+            return;
+          }
+
+          navigate(isAdmin ? '/admin' : '/', { replace: true });
+        };
+
+        // 1) Fluxo com tokens no hash (#access_token=...)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const access_token = hashParams.get('access_token');
         const refresh_token = hashParams.get('refresh_token');
-        
+
         if (access_token) {
-          // Define a sessão com os tokens recebidos
           const { data, error } = await supabase.auth.setSession({
             access_token,
             refresh_token: refresh_token || '',
@@ -25,38 +39,44 @@ const AuthCallback = () => {
           if (error) {
             console.error('Erro ao configurar sessão:', error);
             setError(error.message);
-            // Redireciona para a página de auth com erro após 3 segundos
             setTimeout(() => navigate('/auth'), 3000);
             return;
           }
 
-          if (data.session) {
-            console.log('Sessão estabelecida com sucesso:', data.session.user);
-            // Redireciona para a home
-            navigate('/', { replace: true });
-          }
-        } else {
-          // Se não houver access_token, verifica se há erro nos parâmetros
-          const error_code = hashParams.get('error');
-          const error_description = hashParams.get('error_description');
-          
-          if (error_code) {
-            console.error('Erro no OAuth:', error_code, error_description);
-            setError(error_description || 'Erro ao fazer login');
-            setTimeout(() => navigate('/auth'), 3000);
-          } else {
-            // Tenta pegar a sessão existente
-            const { data: { session }, error } = await supabase.auth.getSession();
-            
-            if (error || !session) {
-              console.error('Nenhuma sessão encontrada');
-              navigate('/auth');
-            } else {
-              console.log('Sessão já existente:', session.user);
-              navigate('/', { replace: true });
-            }
+          if (data.session?.user?.id) {
+            await redirectAfterLogin(data.session.user.id);
+            return;
           }
         }
+
+        // 2) Fluxo PKCE com ?code=...
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+        if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+          if (error) {
+            console.error('Erro ao trocar code por sessão:', error);
+            setError(error.message);
+            setTimeout(() => navigate('/auth'), 3000);
+            return;
+          }
+
+          const userId = data?.session?.user?.id;
+          if (userId) {
+            await redirectAfterLogin(userId);
+            return;
+          }
+        }
+
+        // 3) Se não veio nada, tenta pegar sessão existente
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session?.user?.id) {
+          console.error('Nenhuma sessão encontrada');
+          navigate('/auth', { replace: true });
+          return;
+        }
+
+        await redirectAfterLogin(session.user.id);
       } catch (err) {
         console.error('Erro ao processar callback:', err);
         setError('Erro ao processar autenticação');

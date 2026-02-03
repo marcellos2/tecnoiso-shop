@@ -5,9 +5,11 @@ import FeatureCards from '@/components/FeatureCards';
 import ProductCarousel from '@/components/ProductCarousel';
 import { ProductCard } from '@/components/ProductCard';
 import { products, categories } from '@/data/products';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, Gauge, Thermometer, Scale, Ruler, CircleDot, Zap } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
+import { useAdmin } from '@/hooks/useAdmin';
+import { useEffect } from 'react';
 
 const categoryIcons: Record<string, React.ElementType> = {
   Gauge,
@@ -19,9 +21,18 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const { products: dbProducts } = useProducts();
   const catalog = dbProducts.length > 0 ? dbProducts : products;
   const featuredProducts = catalog.slice(0, 8);
+
+  // Admins should land straight in the admin panel (no need to click "Admin").
+  useEffect(() => {
+    if (!adminLoading && isAdmin) {
+      navigate('/admin', { replace: true });
+    }
+  }, [adminLoading, isAdmin, navigate]);
 
   return (
     <div className="min-h-screen bg-muted">
