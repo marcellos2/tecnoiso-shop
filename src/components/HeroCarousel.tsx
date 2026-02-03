@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 // Import das imagens
 import balanca1 from '@/data/balanca-1.png';
@@ -63,7 +63,6 @@ const bannerSlides = [
 ];
 
 const HeroCarousel = () => {
-  const navigate = useNavigate();
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, duration: 30 },
     [Autoplay({ delay: 5000, stopOnInteraction: false })]
@@ -96,10 +95,6 @@ const HeroCarousel = () => {
     (index: number) => emblaApi && emblaApi.scrollTo(index),
     [emblaApi]
   );
-
-  const handleProductClick = (productId: string) => {
-    navigate(`/produto/${productId}`);
-  };
 
   return (
     <section className="relative overflow-hidden">
@@ -147,10 +142,10 @@ const HeroCarousel = () => {
                           ];
                           const anim = animations[idx];
                           return (
-                            <div 
+                            <Link 
                               key={product.id} 
-                              onClick={() => handleProductClick(product.id)} 
-                              className={`absolute ${anim.size} transition-all duration-[1200ms] ease-out cursor-pointer group`} 
+                              to={`/produto/${product.id}`}
+                              className={`absolute ${anim.size} transition-all duration-[1200ms] ease-out cursor-pointer group block`} 
                               style={{
                                 right: `${anim.right}px`,
                                 top: '50%',
@@ -169,7 +164,7 @@ const HeroCarousel = () => {
                                   className="w-full h-full object-contain select-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.25)] group-hover:drop-shadow-[0_25px_50px_rgba(0,0,0,0.35)] transition-all" 
                                 />
                               </div>
-                            </div>
+                            </Link>
                           );
                         })}
                       </div>
@@ -177,9 +172,9 @@ const HeroCarousel = () => {
                       {/* Products - Mobile */}
                       <div className="lg:hidden absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-36 h-36 sm:w-44 sm:h-44 md:w-52 md:h-52">
                         <div className={`w-full h-full transform transition-all duration-1000 ease-out ${isActive && !isAnimating ? 'translate-y-0 rotate-0 scale-100 opacity-100' : 'translate-y-20 rotate-45 scale-50 opacity-0'}`} style={{ transitionDelay: '500ms' }}>
-                          <div onClick={() => handleProductClick(slide.products[1]?.id || slide.products[0]?.id)} className="w-full h-full p-3 sm:p-4 animate-float cursor-pointer active:scale-95 transition-all">
+                          <Link to={`/produto/${slide.products[1]?.id || slide.products[0]?.id}`} className="w-full h-full p-3 sm:p-4 animate-float cursor-pointer active:scale-95 transition-all block">
                             <img src={slide.products[1]?.image || slide.products[0]?.image} alt={slide.products[1]?.name || slide.products[0]?.name} className="w-full h-full object-contain select-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.25)]" />
-                          </div>
+                          </Link>
                         </div>
                       </div>
                     </div>
