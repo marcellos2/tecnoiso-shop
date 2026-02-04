@@ -106,7 +106,7 @@ const Header = () => {
     setUserName('Usuário');
   };
 
-  // ✅ FUNÇÃO DE LOGOUT CORRIGIDA
+  // ✅ FUNÇÃO DE LOGOUT CORRIGIDA - usa window.location para limpar todo estado
   const handleLogout = async () => {
     try {
       console.log('=== INICIANDO LOGOUT ===');
@@ -126,10 +126,11 @@ const Header = () => {
         description: 'Você saiu da sua conta com sucesso.',
       });
       
-      // Pequeno delay para o toast aparecer, depois redirecionar
+      // IMPORTANTE: Usar window.location para forçar reload completo
+      // Isso limpa todo o estado do React e previne bugs de navegação
       setTimeout(() => {
-        navigate('/auth', { replace: true });
-      }, 500);
+        window.location.href = '/';
+      }, 300);
       
     } catch (error) {
       console.error('❌ Erro no processo de logout:', error);
