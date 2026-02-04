@@ -7,17 +7,30 @@ import { AdminProducts } from '@/components/admin/AdminProducts';
 import { AdminOrders } from '@/components/admin/AdminOrders';
 import { AdminRequests } from '@/components/admin/AdminRequests';
 import { AdminSettings } from '@/components/admin/AdminSettings';
-import { Loader2, LayoutDashboard, Package, ShoppingCart, MessageSquare, Settings, LogOut, Store, Menu, X } from 'lucide-react';
+import { 
+  Loader2, 
+  LayoutDashboard, 
+  Package, 
+  ShoppingCart, 
+  MessageSquare, 
+  Settings, 
+  LogOut, 
+  Store, 
+  Menu,
+  ChevronRight,
+  Shield
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo.png';
 
 const menuItems = [
-  { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
-  { id: 'products', title: 'Produtos', icon: Package },
-  { id: 'orders', title: 'Pedidos', icon: ShoppingCart },
-  { id: 'requests', title: 'Solicitações', icon: MessageSquare },
-  { id: 'settings', title: 'Configurações', icon: Settings },
+  { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard, description: 'Visão geral' },
+  { id: 'products', title: 'Produtos', icon: Package, description: 'Gerenciar catálogo' },
+  { id: 'orders', title: 'Pedidos', icon: ShoppingCart, description: 'Acompanhar vendas' },
+  { id: 'requests', title: 'Solicitações', icon: MessageSquare, description: 'Mensagens de clientes' },
+  { id: 'settings', title: 'Configurações', icon: Settings, description: 'Ajustes do sistema' },
 ];
 
 const Admin = () => {
@@ -25,6 +38,8 @@ const Admin = () => {
   const { user, isAdmin, loading } = useAdmin();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -35,7 +50,39 @@ const Admin = () => {
   }, [loading, user, isAdmin, navigate]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (isLoggingOut) return;
+    
+    setIsLoggingOut(true);
+    
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Logout error:', error);
+        throw error;
+      }
+
+      toast({
+        title: 'Até logo!',
+        description: 'Você saiu da sua conta com sucesso.',
+      });
+
+      // Force navigation with page reload to clear all state
+      window.location.href = '/';
+      
+    } catch (error) {
+      console.error('Logout failed:', error);
+      setIsLoggingOut(false);
+      
+      toast({
+        title: 'Erro ao sair',
+        description: 'Ocorreu um erro. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleGoToStore = () => {
     navigate('/');
   };
 
@@ -43,7 +90,10 @@ const Admin = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-foreground" />
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping" />
+            <Loader2 className="h-12 w-12 animate-spin text-accent relative" />
+          </div>
           <p className="text-muted-foreground font-medium">Carregando painel...</p>
         </div>
       </div>
@@ -72,37 +122,40 @@ const Admin = () => {
   };
 
   const getPageTitle = () => {
-    switch (activeTab) {
-      case 'dashboard': return 'Dashboard';
-      case 'products': return 'Gerenciar Produtos';
-      case 'orders': return 'Pedidos';
-      case 'requests': return 'Solicitações de Clientes';
-      case 'settings': return 'Configurações';
-      default: return 'Dashboard';
-    }
+    const item = menuItems.find(m => m.id === activeTab);
+    return item?.title || 'Dashboard';
+  };
+
+  const getPageDescription = () => {
+    const item = menuItems.find(m => m.id === activeTab);
+    return item?.description || '';
   };
 
   return (
-    <div className="min-h-screen bg-secondary/30">
-      {/* Header - Estilo Mercado Livre */}
-      <header className="bg-accent sticky top-0 z-50">
+    <div className="min-h-screen bg-secondary/20">
+      {/* Header Premium */}
+      <header className="bg-foreground sticky top-0 z-50 shadow-lg">
         <div className="container">
           <div className="flex items-center justify-between py-3 gap-4">
             {/* Mobile Menu + Logo */}
             <div className="flex items-center gap-3">
               {/* Mobile Menu */}
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-                <SheetTrigger className="lg:hidden p-2 hover:bg-white/10 rounded transition-colors">
-                  <Menu className="w-5 h-5 text-foreground" />
+                <SheetTrigger className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors">
+                  <Menu className="w-5 h-5 text-background" />
                 </SheetTrigger>
-                <SheetContent side="left" className="bg-background w-72">
-                  <SheetHeader>
-                    <SheetTitle className="flex items-center gap-2">
+                <SheetContent side="left" className="bg-background w-80 p-0">
+                  <SheetHeader className="p-6 border-b border-border">
+                    <SheetTitle className="flex items-center gap-3">
                       <img src={logo} alt="Tecnoiso" className="h-8" />
-                      <span>Admin</span>
+                      <div>
+                        <span className="font-bold text-foreground">Admin</span>
+                        <p className="text-xs text-muted-foreground font-normal">Painel de Controle</p>
+                      </div>
                     </SheetTitle>
                   </SheetHeader>
-                  <nav className="mt-6 flex flex-col gap-1">
+                  
+                  <nav className="p-4 space-y-1">
                     {menuItems.map((item) => (
                       <button
                         key={item.id}
@@ -111,58 +164,73 @@ const Admin = () => {
                           setIsMobileMenuOpen(false);
                         }}
                         className={`
-                          flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left w-full
+                          flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all text-left w-full group
                           ${activeTab === item.id 
-                            ? 'bg-foreground text-background font-semibold' 
+                            ? 'bg-accent text-accent-foreground font-semibold shadow-md' 
                             : 'text-foreground hover:bg-secondary'
                           }
                         `}
                       >
                         <item.icon className="h-5 w-5" />
-                        {item.title}
+                        <div className="flex-1">
+                          <p className="font-medium">{item.title}</p>
+                          <p className={`text-xs ${activeTab === item.id ? 'text-accent-foreground/70' : 'text-muted-foreground'}`}>
+                            {item.description}
+                          </p>
+                        </div>
+                        <ChevronRight className={`h-4 w-4 transition-transform ${activeTab === item.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`} />
                       </button>
                     ))}
-                    <div className="border-t border-border my-4" />
-                    <Link
-                      to="/"
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
+                    
+                    <div className="border-t border-border my-4 pt-4" />
+                    
+                    <button
+                      onClick={handleGoToStore}
+                      className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-foreground hover:bg-secondary transition-colors w-full"
                     >
                       <Store className="h-5 w-5" />
-                      Ir para a Loja
-                    </Link>
+                      <span className="font-medium">Ir para a Loja</span>
+                    </button>
+                    
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors text-left w-full"
+                      disabled={isLoggingOut}
+                      className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-destructive hover:bg-destructive/10 transition-colors text-left w-full disabled:opacity-50"
                     >
-                      <LogOut className="h-5 w-5" />
-                      Sair da Conta
+                      {isLoggingOut ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <LogOut className="h-5 w-5" />
+                      )}
+                      <span className="font-medium">{isLoggingOut ? 'Saindo...' : 'Sair da Conta'}</span>
                     </button>
                   </nav>
                 </SheetContent>
               </Sheet>
 
               {/* Logo */}
-              <Link to="/" className="flex-shrink-0">
-                <img src={logo} alt="Tecnoiso" className="h-8 md:h-10" />
+              <Link to="/" className="flex-shrink-0 flex items-center gap-3">
+                <img src={logo} alt="Tecnoiso" className="h-9 md:h-10" />
+                <div className="hidden md:block border-l border-background/20 pl-3">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-accent" />
+                    <span className="text-background font-bold text-sm">Painel Admin</span>
+                  </div>
+                </div>
               </Link>
-
-              {/* Título Admin */}
-              <div className="hidden md:block">
-                <span className="text-foreground font-bold text-lg">Painel Administrativo</span>
-              </div>
             </div>
 
             {/* Navigation Desktop */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1 bg-background/10 rounded-xl p-1">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-medium
+                    flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-medium
                     ${activeTab === item.id 
-                      ? 'bg-foreground text-background' 
-                      : 'text-foreground hover:bg-white/10'
+                      ? 'bg-accent text-accent-foreground shadow-md' 
+                      : 'text-background/80 hover:text-background hover:bg-background/10'
                     }
                   `}
                 >
@@ -173,42 +241,64 @@ const Admin = () => {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 md:gap-4">
-              <Link
-                to="/"
-                className="hidden md:flex items-center gap-2 text-sm text-foreground hover:bg-white/10 px-3 py-2 rounded-lg transition-colors"
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={handleGoToStore}
+                className="hidden md:flex items-center gap-2 text-background/80 hover:text-background hover:bg-background/10"
               >
                 <Store className="h-4 w-4" />
-                <span className="hidden lg:inline">Ir para a Loja</span>
-              </Link>
-              <button
+                <span className="hidden lg:inline">Loja</span>
+              </Button>
+              
+              <Button
+                variant="ghost"
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-sm text-foreground hover:bg-white/10 px-3 py-2 rounded-lg transition-colors"
+                disabled={isLoggingOut}
+                className="flex items-center gap-2 text-background/80 hover:text-background hover:bg-background/10"
               >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden md:inline">Sair</span>
-              </button>
+                {isLoggingOut ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4" />
+                )}
+                <span className="hidden md:inline">{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
+              </Button>
             </div>
           </div>
         </div>
       </header>
 
       {/* Page Header */}
-      <div className="bg-background border-b border-border">
-        <div className="container py-4">
-          <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">
+      <div className="bg-background border-b border-border shadow-sm">
+        <div className="container py-6">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+            <Link to="/" className="hover:text-accent transition-colors">Início</Link>
+            <ChevronRight className="h-3 w-3" />
+            <span>Admin</span>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-foreground font-medium">{getPageTitle()}</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             {getPageTitle()}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gerencie todos os aspectos da sua loja
+          <p className="text-muted-foreground mt-1">
+            {getPageDescription()}
           </p>
         </div>
       </div>
 
       {/* Content */}
-      <main className="container py-6">
+      <main className="container py-8">
         {renderContent()}
       </main>
+
+      {/* Footer */}
+      <footer className="bg-background border-t border-border py-4">
+        <div className="container text-center text-sm text-muted-foreground">
+          <p>Tecnoiso Admin © {new Date().getFullYear()} — Todos os direitos reservados</p>
+        </div>
+      </footer>
     </div>
   );
 };
