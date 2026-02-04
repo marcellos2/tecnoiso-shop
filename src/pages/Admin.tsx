@@ -10,6 +10,7 @@ import { AdminSettings } from '@/components/admin/AdminSettings';
 import { Loader2, LayoutDashboard, Package, ShoppingCart, MessageSquare, Settings, LogOut, Store, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo.png';
 
 const menuItems = [
@@ -22,9 +23,11 @@ const menuItems = [
 
 const Admin = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { user, isAdmin, loading } = useAdmin();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -34,9 +37,65 @@ const Admin = () => {
     }
   }, [loading, user, isAdmin, navigate]);
 
+  // ✅ FUNÇÃO DE LOGOUT CORRIGIDA
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+    if (isLoggingOut) {
+      console.log('⚠️ Logout já em andamento');
+      return;
+    }
+
+    try {
+      setIsLoggingOut(true);
+      console.log('=== INICIANDO LOGOUT DO ADMIN ===');
+      console.log('👤 Usuário atual:', user?.email);
+      
+      // Fazer logout do Supabase
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      
+      if (error) {
+        console.error('⚠️ Erro ao fazer logout:', error);
+        // Não lança erro, continua com a limpeza
+      } else {
+        console.log('✅ Logout do Supabase concluído');
+      }
+      
+      // Limpar storage
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        sessionStorage.clear();
+        console.log('✅ Storage limpo');
+      } catch (e) {
+        console.warn('⚠️ Erro ao limpar storage:', e);
+      }
+      
+      // Mostrar mensagem
+      toast({
+        title: 'Até logo!',
+        description: 'Você saiu da conta de administrador.',
+      });
+      
+      console.log('✅ Redirecionando para /auth');
+      
+      // Redirecionar
+      navigate('/auth', { replace: true });
+      
+    } catch (error: any) {
+      console.error('❌ Erro no logout:', error);
+      
+      // Limpar mesmo com erro
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      toast({
+        title: 'Atenção',
+        description: 'Você foi desconectado.',
+      });
+      
+      navigate('/auth', { replace: true });
+      
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   if (loading) {
@@ -132,10 +191,11 @@ const Admin = () => {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors text-left w-full"
+                      disabled={isLoggingOut}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors text-left w-full disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <LogOut className="h-5 w-5" />
-                      Sair da Conta
+                      {isLoggingOut ? 'Saindo...' : 'Sair da Conta'}
                     </button>
                   </nav>
                 </SheetContent>
@@ -183,10 +243,13 @@ const Admin = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-sm text-foreground hover:bg-white/10 px-3 py-2 rounded-lg transition-colors"
+                disabled={isLoggingOut}
+                className="flex items-center gap-2 text-sm text-foreground hover:bg-white/10 px-3 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="hidden md:inline">Sair</span>
+                <span className="hidden md:inline">
+                  {isLoggingOut ? 'Saindo...' : 'Sair'}
+                </span>
               </button>
             </div>
           </div>

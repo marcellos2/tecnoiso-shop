@@ -22,6 +22,7 @@ const Header = () => {
   const [userName, setUserName] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   // Check if we're on a product page
   const isProductPage = location.pathname.startsWith('/produto/');
@@ -53,17 +54,20 @@ const Header = () => {
 
     // Listener primeiro, depois getSession (previne perder eventos)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event no Header:', event);
+      console.log('🔐 Auth event no Header:', event);
       
       if (event === 'SIGNED_OUT') {
+        console.log('✅ Evento SIGNED_OUT detectado');
         setUser(null);
         setUserName('');
         setIsAdmin(false);
         setIsAnimating(false);
+        setIsLoggingOut(false);
         return;
       }
 
       if (session?.user) {
+        console.log('✅ Usuário autenticado:', session.user.email);
         setUser(session.user);
         setIsAnimating(true);
 
@@ -74,14 +78,22 @@ const Header = () => {
             setIsAnimating(false);
           }, 300);
         }, 300);
+      } else {
+        console.log('⚠️ Sem sessão ativa');
+        setUser(null);
+        setUserName('');
+        setIsAdmin(false);
       }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        console.log('✅ Sessão inicial encontrada:', session.user.email);
         setUser(session.user);
         extractUserName(session.user);
         void checkAdminStatus(session.user.id);
+      } else {
+        console.log('⚠️ Nenhuma sessão inicial encontrada');
       }
     });
 
@@ -106,19 +118,42 @@ const Header = () => {
     setUserName('Usuário');
   };
 
-  // ✅ FUNÇÃO DE LOGOUT CORRIGIDA
+  // ✅ FUNÇÃO DE LOGOUT MELHORADA E CORRIGIDA
   const handleLogout = async () => {
+    if (isLoggingOut) {
+      console.log('⚠️ Logout já em andamento, ignorando clique duplicado');
+      return;
+    }
+
     try {
-      console.log('=== INICIANDO LOGOUT ===');
+      setIsLoggingOut(true);
+      console.log('=== INICIANDO PROCESSO DE LOGOUT ===');
+      console.log('📧 Usuário atual:', user?.email);
       
-      const { error } = await supabase.auth.signOut();
+      // Limpar estado local primeiro
+      setUser(null);
+      setUserName('');
+      setIsAdmin(false);
+      
+      // Fazer logout do Supabase
+      const { error } = await supabase.auth.signOut({
+        scope: 'local' // Remove apenas a sessão local
+      });
       
       if (error) {
-        console.error('❌ Erro ao fazer logout:', error);
+        console.error('❌ Erro ao fazer logout do Supabase:', error);
         throw error;
       }
 
-      console.log('✅ Logout realizado com sucesso');
+      console.log('✅ Logout do Supabase concluído');
+      
+      // Limpar localStorage adicional (se houver)
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        console.log('✅ Token local removido');
+      } catch (e) {
+        console.warn('⚠️ Erro ao limpar localStorage:', e);
+      }
       
       // Mostrar mensagem de sucesso
       toast({
@@ -126,19 +161,30 @@ const Header = () => {
         description: 'Você saiu da sua conta com sucesso.',
       });
       
-      // Pequeno delay para o toast aparecer, depois redirecionar
-      setTimeout(() => {
-        navigate('/auth', { replace: true });
-      }, 500);
+      console.log('✅ Redirecionando para /auth');
       
-    } catch (error) {
+      // Redirecionar imediatamente
+      navigate('/auth', { replace: true });
+      
+    } catch (error: any) {
       console.error('❌ Erro no processo de logout:', error);
       
+      // Mesmo com erro, limpar estado e redirecionar
+      setUser(null);
+      setUserName('');
+      setIsAdmin(false);
+      
       toast({
-        title: 'Erro ao sair',
-        description: 'Ocorreu um erro ao fazer logout. Tente novamente.',
-        variant: 'destructive',
+        title: 'Atenção',
+        description: 'Você foi desconectado. Faça login novamente se necessário.',
+        variant: 'default',
       });
+      
+      // Redirecionar mesmo com erro
+      navigate('/auth', { replace: true });
+      
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -191,9 +237,10 @@ const Header = () => {
                           )}
                           <button 
                             onClick={handleLogout}
-                            className="block w-full text-left py-2 hover:text-accent transition-colors"
+                            disabled={isLoggingOut}
+                            className="block w-full text-left py-2 hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Sair
+                            {isLoggingOut ? 'Saindo...' : 'Sair'}
                           </button>
                         </>
                       ) : (
@@ -284,9 +331,10 @@ const Header = () => {
                     <button 
                       type="button"
                       onClick={handleLogout}
-                      className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
+                      disabled={isLoggingOut}
+                      className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Sair
+                      {isLoggingOut ? 'Saindo...' : 'Sair'}
                     </button>
                   </>
                 ) : (
