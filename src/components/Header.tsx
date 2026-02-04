@@ -5,10 +5,12 @@ import { useCart } from '@/contexts/CartContext';
 import { CartSidebar } from './CartSidebar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo.png';
 
 const Header = () => {
   const { totalItems } = useCart();
+  const { toast } = useToast();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
@@ -49,9 +51,10 @@ const Header = () => {
       setIsAdmin(!!data);
     };
 
-    // IMPORTANT: listener first, then getSession (prevents missing events)
-    // NOTE: after OAuth redirects, Supabase often emits INITIAL_SESSION (not SIGNED_IN).
+    // Listener primeiro, depois getSession (previne perder eventos)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event no Header:', event);
+      
       if (event === 'SIGNED_OUT') {
         setUser(null);
         setUserName('');
@@ -103,6 +106,42 @@ const Header = () => {
     setUserName('Usuário');
   };
 
+  // ✅ FUNÇÃO DE LOGOUT CORRIGIDA
+  const handleLogout = async () => {
+    try {
+      console.log('=== INICIANDO LOGOUT ===');
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('❌ Erro ao fazer logout:', error);
+        throw error;
+      }
+
+      console.log('✅ Logout realizado com sucesso');
+      
+      // Mostrar mensagem de sucesso
+      toast({
+        title: 'Até logo!',
+        description: 'Você saiu da sua conta com sucesso.',
+      });
+      
+      // Pequeno delay para o toast aparecer, depois redirecionar
+      setTimeout(() => {
+        navigate('/auth', { replace: true });
+      }, 500);
+      
+    } catch (error) {
+      console.error('❌ Erro no processo de logout:', error);
+      
+      toast({
+        title: 'Erro ao sair',
+        description: 'Ocorreu um erro ao fazer logout. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const navLinks = [
     { name: 'Categorias', href: '/', hasDropdown: true },
     { name: 'Ofertas', href: '/' },
@@ -150,15 +189,8 @@ const Header = () => {
                               Painel Admin
                             </Link>
                           )}
-                           <button 
-                             onClick={async () => {
-                               try {
-                                 await supabase.auth.signOut();
-                               } finally {
-                                 // hard refresh to guarantee UI update
-                                 window.location.assign('/');
-                               }
-                             }}
+                          <button 
+                            onClick={handleLogout}
                             className="block w-full text-left py-2 hover:text-accent transition-colors"
                           >
                             Sair
@@ -249,15 +281,9 @@ const Header = () => {
                         Administrador
                       </button>
                     )}
-                     <button 
-                       type="button"
-                       onClick={async () => {
-                         try {
-                           await supabase.auth.signOut();
-                         } finally {
-                           window.location.assign('/');
-                         }
-                       }}
+                    <button 
+                      type="button"
+                      onClick={handleLogout}
                       className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
                     >
                       Sair
@@ -267,14 +293,14 @@ const Header = () => {
                   <>
                     <button 
                       type="button"
-                      onClick={() => window.location.href = '/auth'}
+                      onClick={() => navigate('/auth')}
                       className="hover:text-accent transition-colors cursor-pointer bg-transparent border-none p-0"
                     >
                       Crie a sua conta
                     </button>
                     <button 
                       type="button"
-                      onClick={() => window.location.href = '/auth'}
+                      onClick={() => navigate('/auth')}
                       className={`hover:text-accent transition-all duration-300 cursor-pointer bg-transparent border-none p-0 ${
                         isAnimating 
                           ? 'opacity-0 transform -translate-y-2' 

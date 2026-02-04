@@ -22,29 +22,40 @@ const Auth = () => {
   useEffect(() => {
     let isMounted = true;
 
-    // IMPORTANT: listener FIRST, then check for existing session.
+    // Check for existing session first
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isMounted && session?.user) {
+          navigate('/', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (!isMounted) return;
         
-        // After OAuth redirects / hard refresh, we often get INITIAL_SESSION.
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
-          // Defer navigation to avoid deadlock
-          setTimeout(() => {
-            if (isMounted) {
-              navigate('/');
-            }
-          }, 0);
+        console.log('Auth event:', event);
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Small delay to ensure state is properly set
+          await new Promise(resolve => setTimeout(resolve, 100));
+          if (isMounted) {
+            navigate('/', { replace: true });
+          }
+        }
+        
+        if (event === 'SIGNED_OUT') {
+          setIsLoading(false);
         }
       }
     );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (isMounted && session?.user) {
-        navigate('/');
-      }
-    });
 
     return () => {
       isMounted = false;
@@ -56,7 +67,7 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Valida os inputs
+    // Validate inputs
     const emailResult = emailSchema.safeParse(email);
     if (!emailResult.success) {
       toast({
@@ -82,7 +93,7 @@ const Auth = () => {
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
 
@@ -100,13 +111,15 @@ const Auth = () => {
           title: 'Bem-vindo!',
           description: 'Login realizado com sucesso',
         });
+        
+        // Navigation handled by onAuthStateChange
       } else {
-        const redirectUrl = `${window.location.origin}/`;
         const { error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: {
-            emailRedirectTo: redirectUrl,
+            // ✅ CORRIGIDO: usar /auth/callback
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
 
@@ -122,6 +135,7 @@ const Auth = () => {
           title: 'Conta criada!',
           description: 'Verifique seu e-mail para confirmar a conta',
         });
+        setIsLoading(false);
       }
     } catch (error) {
       toast({
@@ -129,7 +143,6 @@ const Auth = () => {
         description: error instanceof Error ? error.message : 'Ocorreu um erro inesperado',
         variant: 'destructive',
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -137,28 +150,44 @@ const Auth = () => {
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-      console.log('Iniciando login com Google...');
+      console.log('=== INICIANDO LOGIN COM GOOGLE ===');
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const origin = window.location.origin;
+      const redirectUrl = `${origin}/auth/callback`;  // ✅ CORRIGIDO
+      
+      console.log('Origin:', origin);
+      console.log('Redirect URL:', redirectUrl);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/authcallback`,
+          redirectTo: redirectUrl,  // ✅ CORRIGIDO
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
       if (error) {
-        console.error('Erro no OAuth:', error);
-        toast({
-          title: 'Erro',
-          description: error.message,
-          variant: 'destructive',
-        });
-        setIsLoading(false);
+        console.error('❌ Erro no OAuth:', error);
+        throw error;
       }
-      // Se não houver erro, vai redirecionar automaticamente
+
+      console.log('✅ OAuth iniciado:', data);
+      
+      // O redirecionamento acontece automaticamente
+      // Manter loading state ativo durante o redirect
       
     } catch (error) {
-      console.error('Erro no login com Google:', error);
+      console.error('❌ Erro no login com Google:', error);
+      
+      // Não mostrar toast para erros de abort - são esperados durante redirect
+      if (error instanceof Error && error.message.includes('aborted')) {
+        console.log('Redirect em andamento...');
+        return;
+      }
+      
       toast({
         title: 'Erro',
         description: error instanceof Error ? error.message : 'Erro ao fazer login com Google.',
@@ -214,6 +243,7 @@ const Auth = () => {
                   className="h-12 border-border focus:border-accent focus:ring-accent"
                   placeholder=""
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -230,6 +260,7 @@ const Auth = () => {
                     className="h-12 border-border focus:border-accent focus:ring-accent"
                     placeholder=""
                     required
+                    disabled={isLoading}
                   />
                 </div>
               )}
@@ -239,6 +270,7 @@ const Auth = () => {
                   type="button"
                   onClick={() => setShowPassword(true)}
                   className="w-full h-12 bg-accent hover:bg-accent/90 text-white font-semibold rounded"
+                  disabled={isLoading}
                 >
                   Continuar
                 </Button>
@@ -260,6 +292,7 @@ const Auth = () => {
                     setShowPassword(false);
                   }}
                   className="text-accent hover:underline text-sm font-medium"
+                  disabled={isLoading}
                 >
                   {isLogin ? 'Criar conta' : 'Já tenho uma conta'}
                 </button>
@@ -299,7 +332,7 @@ const Auth = () => {
                   />
                 </svg>
                 <span className="text-foreground font-medium">
-                  {isLoading ? 'Redirecionando...' : 'Fazer Login com o Google'}
+                  {isLoading ? 'Aguarde...' : 'Fazer Login com o Google'}
                 </span>
               </button>
             </form>

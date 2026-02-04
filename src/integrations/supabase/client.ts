@@ -1,5 +1,5 @@
 // src/integrations/supabase/client.ts
-// Template Correto para OAuth com Google
+// Configuração Corrigida para OAuth com Google
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -27,19 +27,26 @@ console.log('✅ Supabase configurado:', {
   keyStart: supabaseAnonKey.substring(0, 20) + '...',
 });
 
-// Criar cliente com configurações para OAuth
+// ✅ CORREÇÃO: Usar PKCE ao invés de implicit
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Importante para OAuth funcionar
+    // IMPORTANTE: PKCE é mais seguro e recomendado
+    flowType: 'pkce',  // ✅ CORRIGIDO
+    
+    // Auto refresh de tokens
     autoRefreshToken: true,
+    
+    // Persistir sessão no localStorage
     persistSession: true,
+    
+    // Detectar sessão na URL (importante para OAuth)
     detectSessionInUrl: true,
     
-    // Configuração de storage (localStorage)
+    // Storage padrão
     storage: window.localStorage,
     
-    // Flow type (implicit é melhor para web)
-    flowType: 'implicit',
+    // Configurações de debug (remover em produção)
+    debug: import.meta.env.DEV,
   },
   
   // Configurações globais
@@ -51,24 +58,23 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Log de inicialização
-console.log('✅ Cliente Supabase inicializado');
+console.log('✅ Cliente Supabase inicializado com PKCE flow');
 
-// Listener para debug de autenticação (remova em produção)
-supabase.auth.onAuthStateChange((event, session) => {
-  console.log('🔐 Auth State Change:', event);
-  console.log('👤 Session:', session ? 'Active' : 'No session');
-  
-  if (event === 'SIGNED_IN') {
-    console.log('✅ User signed in:', session?.user?.email);
-  }
-  
-  if (event === 'SIGNED_OUT') {
-    console.log('👋 User signed out');
-  }
-  
-  if (event === 'TOKEN_REFRESHED') {
-    console.log('🔄 Token refreshed');
-  }
-});
+// Listener para debug de autenticação (opcional - remova em produção)
+if (import.meta.env.DEV) {
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('🔐 Auth State Change:', event);
+    
+    if (session) {
+      console.log('👤 Session Active:', {
+        userId: session.user.id,
+        email: session.user.email,
+        expiresAt: new Date(session.expires_at! * 1000).toLocaleString(),
+      });
+    } else {
+      console.log('👤 No active session');
+    }
+  });
+}
 
 export default supabase;
