@@ -152,20 +152,10 @@ const Auth = () => {
       setIsLoading(true);
       console.log('=== INICIANDO LOGIN COM GOOGLE ===');
       
-      const origin = window.location.origin;
-      const redirectUrl = `${origin}/auth/callback`;  // ✅ CORRIGIDO
-      
-      console.log('Origin:', origin);
-      console.log('Redirect URL:', redirectUrl);
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl,  // ✅ CORRIGIDO
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -175,18 +165,10 @@ const Auth = () => {
       }
 
       console.log('✅ OAuth iniciado:', data);
-      
       // O redirecionamento acontece automaticamente
-      // Manter loading state ativo durante o redirect
       
     } catch (error) {
       console.error('❌ Erro no login com Google:', error);
-      
-      // Não mostrar toast para erros de abort - são esperados durante redirect
-      if (error instanceof Error && error.message.includes('aborted')) {
-        console.log('Redirect em andamento...');
-        return;
-      }
       
       toast({
         title: 'Erro',
