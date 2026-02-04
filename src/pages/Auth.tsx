@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -136,19 +135,27 @@ const Auth = () => {
   };
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
     try {
-      console.log('Iniciando login com Google via Lovable Cloud...');
+      setIsLoading(true);
+      console.log('Iniciando login com Google...');
       
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        // Use a dedicated callback route so we can always finalize the session deterministically.
-        redirect_uri: `${window.location.origin}/auth/callback`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/authcallback`,
+        },
       });
 
       if (error) {
         console.error('Erro no OAuth:', error);
-        throw error;
+        toast({
+          title: 'Erro',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setIsLoading(false);
       }
+      // Se não houver erro, vai redirecionar automaticamente
       
     } catch (error) {
       console.error('Erro no login com Google:', error);
