@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, ShoppingCart, MessageSquare, DollarSign, TrendingUp, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+ import { Package, ShoppingCart, MessageSquare, DollarSign, TrendingUp, Clock, ArrowUpRight, ArrowDownRight, Users, Bell, CreditCard } from 'lucide-react';
+ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 interface DashboardStats {
   totalProducts: number;
@@ -12,6 +13,28 @@ interface DashboardStats {
   totalRevenue: number;
 }
 
+ const mockChartData = [
+   { name: 'Jan', vendas: 4000, views: 2400 },
+   { name: 'Fev', vendas: 3000, views: 1398 },
+   { name: 'Mar', vendas: 9800, views: 2000 },
+   { name: 'Abr', vendas: 3908, views: 2780 },
+   { name: 'Mai', vendas: 4800, views: 1890 },
+   { name: 'Jun', vendas: 3800, views: 2390 },
+   { name: 'Jul', vendas: 4300, views: 3490 },
+   { name: 'Ago', vendas: 5100, views: 2100 },
+   { name: 'Set', vendas: 4600, views: 2900 },
+ ];
+ 
+ const weeklyData = [
+   { name: 'Seg', value: 2400 },
+   { name: 'Ter', value: 1398 },
+   { name: 'Qua', value: 9800 },
+   { name: 'Qui', value: 3908 },
+   { name: 'Sex', value: 4800 },
+   { name: 'Sáb', value: 3800 },
+   { name: 'Dom', value: 4300 },
+ ];
+ 
 export function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
@@ -124,171 +147,280 @@ export function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse border-border">
-            <CardHeader className="pb-2">
-              <div className="h-4 bg-muted rounded w-1/2" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 bg-muted rounded w-1/3" />
-            </CardContent>
-          </Card>
+           <div key={i} className="animate-pulse rounded-xl p-6" style={{ backgroundColor: '#1a1a1a' }}>
+             <div className="h-4 bg-gray-700 rounded w-1/2 mb-4" />
+             <div className="h-8 bg-gray-700 rounded w-1/3" />
+           </div>
         ))}
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="border-border bg-background hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Produtos</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-foreground/5 flex items-center justify-center">
-              <Package className="h-5 w-5 text-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.totalProducts}</div>
-            <p className="text-xs text-muted-foreground mt-1">itens no catálogo</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-background hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Pedidos</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-foreground/5 flex items-center justify-center">
-              <ShoppingCart className="h-5 w-5 text-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.totalOrders}</div>
-            <div className="flex items-center gap-1 mt-1">
-              {stats.pendingOrders > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-warning/10 text-warning font-medium">
-                  {stats.pendingOrders} pendente(s)
-                </span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-background hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Receita Total</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-success" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{formatCurrency(stats.totalRevenue)}</div>
-            <div className="flex items-center gap-1 mt-1 text-success text-xs font-medium">
-              <ArrowUpRight className="h-3 w-3" />
-              pedidos aprovados
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-background hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pedidos Pendentes</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center">
-              <Clock className="h-5 w-5 text-warning" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-warning">{stats.pendingOrders}</div>
-            <p className="text-xs text-muted-foreground mt-1">aguardando ação</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-background hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Solicitações</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-foreground/5 flex items-center justify-center">
-              <MessageSquare className="h-5 w-5 text-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.totalRequests}</div>
-            <div className="flex items-center gap-1 mt-1">
-              {stats.pendingRequests > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-warning/10 text-warning font-medium">
-                  {stats.pendingRequests} pendente(s)
-                </span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-background hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Taxa de Conversão</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-foreground/5 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">
-              {stats.totalOrders > 0
-                ? `${((stats.totalOrders - stats.pendingOrders) / stats.totalOrders * 100).toFixed(1)}%`
-                : '0%'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">pedidos finalizados</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Orders */}
-      <Card className="border-border bg-background">
-        <CardHeader className="border-b border-border">
-          <CardTitle className="text-lg font-bold text-foreground">Pedidos Recentes</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {recentOrders.length === 0 ? (
-            <div className="text-muted-foreground text-center py-12">
-              <ShoppingCart className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-              <p className="font-medium">Nenhum pedido ainda</p>
-              <p className="text-sm">Os pedidos aparecerão aqui quando forem realizados</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {recentOrders.map((order) => {
-                const statusConfig = getStatusConfig(order.status);
-                return (
-                  <div
-                    key={order.id}
-                    className="flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-foreground/5 flex items-center justify-center">
-                        <span className="text-sm font-bold text-foreground">
-                          {order.customer_name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">{order.customer_name}</p>
-                        <p className="text-sm text-muted-foreground">{order.customer_email}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {new Date(order.created_at).toLocaleString('pt-BR')}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-foreground text-lg">{formatCurrency(order.total_amount)}</p>
-                      <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${statusConfig.className}`}>
-                        {statusConfig.label}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+     <div className="space-y-6">
+       {/* Row 1: Stats Cards + Weekly Chart */}
+       <div className="grid gap-4 lg:grid-cols-3">
+         {/* Weekly Sales Card */}
+         <div className="rounded-xl p-6" style={{ backgroundColor: '#1a1a1a' }}>
+           <div className="flex items-center justify-between mb-4">
+             <div>
+               <p className="text-3xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</p>
+               <p className="text-gray-500 text-sm">Vendas da Semana</p>
+             </div>
+             <span className="flex items-center gap-1 text-xs font-medium text-red-400">
+               <ArrowDownRight className="h-3 w-3" />
+               8.6%
+             </span>
+           </div>
+           <div className="h-20">
+             <ResponsiveContainer width="100%" height="100%">
+               <AreaChart data={weeklyData}>
+                 <defs>
+                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                   </linearGradient>
+                 </defs>
+                 <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fill="url(#colorValue)" />
+               </AreaChart>
+             </ResponsiveContainer>
+           </div>
+         </div>
+ 
+         {/* Mini Stat Cards */}
+         <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+           <div className="rounded-xl p-4 flex flex-col items-center justify-center" style={{ backgroundColor: '#1a1a1a' }}>
+             <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-2">
+               <ShoppingCart className="h-6 w-6 text-blue-400" />
+             </div>
+             <p className="text-2xl font-bold text-white">{stats.totalOrders}</p>
+             <p className="text-xs text-gray-500">Pedidos</p>
+           </div>
+           
+           <div className="rounded-xl p-4 flex flex-col items-center justify-center" style={{ backgroundColor: '#1a1a1a' }}>
+             <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-2">
+               <DollarSign className="h-6 w-6 text-emerald-400" />
+             </div>
+             <p className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</p>
+             <p className="text-xs text-gray-500">Receita</p>
+           </div>
+           
+           <div className="rounded-xl p-4 flex flex-col items-center justify-center" style={{ backgroundColor: '#1a1a1a' }}>
+             <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mb-2">
+               <Bell className="h-6 w-6 text-red-400" />
+             </div>
+             <p className="text-2xl font-bold text-white">{stats.pendingOrders}</p>
+             <p className="text-xs text-gray-500">Notificações</p>
+           </div>
+           
+           <div className="rounded-xl p-4 flex flex-col items-center justify-center" style={{ backgroundColor: '#1a1a1a' }}>
+             <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center mb-2">
+               <CreditCard className="h-6 w-6 text-cyan-400" />
+             </div>
+             <p className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</p>
+             <p className="text-xs text-gray-500">Pagamento</p>
+           </div>
+         </div>
+       </div>
+ 
+       {/* Row 2: Users Stats + Main Chart */}
+       <div className="grid gap-4 lg:grid-cols-3">
+         {/* Total Users Card */}
+         <div className="rounded-xl p-6" style={{ backgroundColor: '#1a1a1a' }}>
+           <div className="flex items-center justify-between mb-2">
+             <p className="text-3xl font-bold text-white">{stats.totalProducts}</p>
+             <button className="text-gray-500">⋮</button>
+           </div>
+           <p className="text-gray-500 text-sm mb-4">Total de Produtos</p>
+           <div className="flex gap-1 mb-2">
+             {[40, 60, 80, 50, 70, 90, 45, 65, 55, 75, 85, 60].map((h, i) => (
+               <div 
+                 key={i} 
+                 className="flex-1 rounded-sm bg-gradient-to-t from-red-500 to-orange-400"
+                 style={{ height: `${h}px` }}
+               />
+             ))}
+           </div>
+           <p className="text-emerald-400 text-xs font-medium">
+             <ArrowUpRight className="inline h-3 w-3" /> 12.5% em relação ao mês anterior
+           </p>
+         </div>
+ 
+         {/* Active Users Ring */}
+         <div className="rounded-xl p-6" style={{ backgroundColor: '#1a1a1a' }}>
+           <div className="flex items-center justify-between mb-2">
+             <p className="text-3xl font-bold text-white">{stats.totalRequests}</p>
+             <button className="text-gray-500">⋮</button>
+           </div>
+           <p className="text-gray-500 text-sm mb-4">Solicitações Ativas</p>
+           <div className="flex items-center justify-center">
+             <div className="relative w-24 h-24">
+               <svg className="w-24 h-24 transform -rotate-90">
+                 <circle cx="48" cy="48" r="40" stroke="#374151" strokeWidth="8" fill="none" />
+                 <circle 
+                   cx="48" 
+                   cy="48" 
+                   r="40" 
+                   stroke="url(#gradient)" 
+                   strokeWidth="8" 
+                   fill="none"
+                   strokeDasharray={`${78 * 2.51} ${100 * 2.51}`}
+                   strokeLinecap="round"
+                 />
+                 <defs>
+                   <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                     <stop offset="0%" stopColor="#06b6d4" />
+                     <stop offset="100%" stopColor="#ec4899" />
+                   </linearGradient>
+                 </defs>
+               </svg>
+               <div className="absolute inset-0 flex items-center justify-center">
+                 <span className="text-xl font-bold text-white">78%</span>
+               </div>
+             </div>
+           </div>
+           <p className="text-center text-gray-500 text-sm mt-2">
+             Taxa de resolução
+           </p>
+         </div>
+ 
+         {/* Sales & Views Chart */}
+         <div className="rounded-xl p-6" style={{ backgroundColor: '#1a1a1a' }}>
+           <div className="flex items-center justify-between mb-4">
+             <p className="text-lg font-semibold text-white">Vendas & Visualizações</p>
+             <button className="text-gray-500">⋮</button>
+           </div>
+           <div className="h-48">
+             <ResponsiveContainer width="100%" height="100%">
+               <BarChart data={mockChartData}>
+                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                 <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} />
+                 <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} />
+                 <Tooltip 
+                   contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
+                   labelStyle={{ color: '#fff' }}
+                 />
+                 <Bar dataKey="vendas" fill="#10b981" radius={[4, 4, 0, 0]} />
+                 <Bar dataKey="views" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+               </BarChart>
+             </ResponsiveContainer>
+           </div>
+           <div className="flex items-center justify-center gap-4 mt-2">
+             <span className="flex items-center gap-1 text-xs text-gray-400">
+               <span className="w-2 h-2 bg-emerald-500 rounded-full" /> Vendas
+             </span>
+             <span className="flex items-center gap-1 text-xs text-gray-400">
+               <span className="w-2 h-2 bg-purple-500 rounded-full" /> Views
+             </span>
+           </div>
+         </div>
+       </div>
+ 
+       {/* Row 3: Monthly/Yearly Stats + Recent Orders */}
+       <div className="grid gap-4 lg:grid-cols-2">
+         {/* Monthly/Yearly Cards */}
+         <div className="grid grid-cols-2 gap-4">
+           <div className="rounded-xl p-6" style={{ backgroundColor: '#1a1a1a' }}>
+             <div className="flex items-center gap-4">
+               <div className="relative w-16 h-16">
+                 <svg className="w-16 h-16 transform -rotate-90">
+                   <circle cx="32" cy="32" r="28" stroke="#374151" strokeWidth="6" fill="none" />
+                   <circle 
+                     cx="32" 
+                     cy="32" 
+                     r="28" 
+                     stroke="#8b5cf6" 
+                     strokeWidth="6" 
+                     fill="none"
+                     strokeDasharray={`${65 * 1.76} ${100 * 1.76}`}
+                     strokeLinecap="round"
+                   />
+                 </svg>
+               </div>
+               <div>
+                 <p className="text-gray-500 text-xs">Mensal</p>
+                 <p className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue * 0.67)}</p>
+                 <p className="text-emerald-400 text-xs">
+                   <ArrowUpRight className="inline h-3 w-3" /> 16.5%
+                 </p>
+               </div>
+             </div>
+           </div>
+ 
+           <div className="rounded-xl p-6" style={{ backgroundColor: '#1a1a1a' }}>
+             <div className="flex items-center gap-4">
+               <div className="relative w-16 h-16">
+                 <svg className="w-16 h-16 transform -rotate-90">
+                   <circle cx="32" cy="32" r="28" stroke="#374151" strokeWidth="6" fill="none" />
+                   <circle 
+                     cx="32" 
+                     cy="32" 
+                     r="28" 
+                     stroke="#06b6d4" 
+                     strokeWidth="6" 
+                     fill="none"
+                     strokeDasharray={`${75 * 1.76} ${100 * 1.76}`}
+                     strokeLinecap="round"
+                   />
+                 </svg>
+               </div>
+               <div>
+                 <p className="text-gray-500 text-xs">Anual</p>
+                 <p className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue * 10)}</p>
+                 <p className="text-emerald-400 text-xs">
+                   <ArrowUpRight className="inline h-3 w-3" /> 24.9%
+                 </p>
+               </div>
+             </div>
+           </div>
+         </div>
+ 
+         {/* Recent Orders */}
+         <div className="rounded-xl p-6" style={{ backgroundColor: '#1a1a1a' }}>
+           <div className="flex items-center justify-between mb-4">
+             <p className="text-lg font-semibold text-white">Pedidos Recentes</p>
+             <button className="text-gray-500">⋮</button>
+           </div>
+           
+           {recentOrders.length === 0 ? (
+             <div className="text-center py-8">
+               <ShoppingCart className="h-10 w-10 mx-auto mb-2 text-gray-600" />
+               <p className="text-gray-500">Nenhum pedido ainda</p>
+             </div>
+           ) : (
+             <div className="space-y-3">
+               {recentOrders.slice(0, 4).map((order) => {
+                 const statusConfig = getStatusConfig(order.status);
+                 return (
+                   <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                     <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
+                         {order.customer_name.charAt(0).toUpperCase()}
+                       </div>
+                       <div>
+                         <p className="text-sm font-medium text-white">{order.customer_name}</p>
+                         <p className="text-xs text-gray-500">{order.customer_email}</p>
+                       </div>
+                     </div>
+                     <div className="text-right">
+                       <p className="text-sm font-bold text-white">{formatCurrency(order.total_amount)}</p>
+                       <span className={`text-xs px-2 py-0.5 rounded-full ${
+                         order.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
+                         order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                         'bg-gray-500/20 text-gray-400'
+                       }`}>
+                         {statusConfig.label}
+                       </span>
+                     </div>
+                   </div>
+                 );
+               })}
+             </div>
+           )}
+         </div>
+       </div>
     </div>
   );
 }
