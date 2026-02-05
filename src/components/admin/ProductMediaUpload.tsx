@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, X, Image, Video, Loader2, Plus } from 'lucide-react';
+import { Upload, X, Image, Video, Loader2, Plus, AlertCircle } from 'lucide-react';
 
 interface MediaItem {
   url: string;
@@ -23,8 +23,92 @@ export function ProductMediaUpload({
 }: ProductMediaUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const validateFile = (file: File): { valid: boolean; error?: string } => {
+    // Validate file type
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    
+    if (!isImage && !isVideo) {
+      return { valid: false, error: `Tipo de arquivo não suportado: ${file.name}` };
+    }
+
+    // Validate file size (50MB max)
+    const maxSize = 52428800; // 50MB in bytes
+    if (file.size > maxSize) {
+      return { valid: false, error: `Arquivo muito grande: ${file.name} (máx 50MB)` };
+    }
+
+    // Validate image formats
+    if (isImage) {
+      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (!validImageTypes.includes(file.type)) {
+        return { valid: false, error: `Formato de imagem não suportado: ${file.name}` };
+      }
+    }
+
+    // Validate video formats
+    if (isVideo) {
+      const validVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+      if (!validVideoTypes.includes(file.type)) {
+        return { valid: false, error: `Formato de vídeo não suportado: ${file.name}` };
+      }
+    }
+
+    return { valid: true };
+  };
+
+  const uploadSingleFile = async (file: File): Promise<MediaItem> => {
+    // Validate file
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const fileName = `${timestamp}-${randomString}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+
+    setUploadProgress(`Enviando ${file.name}...`);
+
+    // Upload to Supabase Storage
+    const { error: uploadError, data: uploadData } = await supabase.storage
+      .from('product-media')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw new Error(`Erro ao enviar ${file.name}: ${uploadError.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('product-media')
+      .getPublicUrl(filePath);
+
+    // Verify the URL is accessible
+    if (!publicUrl) {
+      throw new Error(`Não foi possível gerar URL pública para ${file.name}`);
+    }
+
+    return {
+      url: publicUrl,
+      type: isImage ? 'image' : 'video',
+      name: file.name,
+    };
+  };
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -41,87 +125,75 @@ export function ProductMediaUpload({
 
     const filesToUpload = Array.from(files).slice(0, remainingSlots);
     setUploading(true);
+    setUploadProgress('Preparando upload...');
 
-    try {
-      const uploadPromises = filesToUpload.map(async (file) => {
-        // Validate file type
-        const isImage = file.type.startsWith('image/');
-        const isVideo = file.type.startsWith('video/');
-        
-        if (!isImage && !isVideo) {
-          throw new Error(`Tipo de arquivo não suportado: ${file.name}`);
-        }
+    const successfulUploads: MediaItem[] = [];
+    const errors: string[] = [];
 
-        // Validate file size (50MB max)
-        if (file.size > 52428800) {
-          throw new Error(`Arquivo muito grande: ${file.name} (máx 50MB)`);
-        }
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      try {
+        const mediaItem = await uploadSingleFile(file);
+        successfulUploads.push(mediaItem);
+        setUploadProgress(`Enviado ${i + 1}/${filesToUpload.length}`);
+      } catch (error: any) {
+        console.error(`Error uploading ${file.name}:`, error);
+        errors.push(error.message || `Erro ao enviar ${file.name}`);
+      }
+    }
 
-        // Generate unique filename
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `products/${fileName}`;
+    setUploading(false);
+    setUploadProgress('');
 
-        // Upload to Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from('product-media')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('product-media')
-          .getPublicUrl(filePath);
-
-        return {
-          url: publicUrl,
-          type: isImage ? 'image' : 'video',
-          name: file.name,
-        } as MediaItem;
-      });
-
-      const newMedia = await Promise.all(uploadPromises);
-      onMediaChange([...mediaUrls, ...newMedia]);
-
+    // Update media list with successful uploads
+    if (successfulUploads.length > 0) {
+      onMediaChange([...mediaUrls, ...successfulUploads]);
+      
       toast({
         title: 'Sucesso',
-        description: `${newMedia.length} arquivo(s) enviado(s) com sucesso.`,
+        description: `${successfulUploads.length} arquivo(s) enviado(s) com sucesso.`,
       });
-    } catch (error: any) {
-      console.error('Upload error:', error);
+    }
+
+    // Show errors if any
+    if (errors.length > 0) {
       toast({
-        title: 'Erro no upload',
-        description: error.message || 'Erro ao enviar arquivos.',
+        title: 'Alguns arquivos falharam',
+        description: errors.slice(0, 3).join('. ') + (errors.length > 3 ? '...' : ''),
         variant: 'destructive',
       });
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const handleRemove = async (index: number) => {
     const mediaToRemove = mediaUrls[index];
     
-    // Extract file path from URL
+    // Extract file path from URL and try to delete from storage
     try {
       const url = new URL(mediaToRemove.url);
       const pathParts = url.pathname.split('/');
       const filePath = pathParts.slice(-2).join('/'); // products/filename.ext
       
-      // Try to delete from storage
       await supabase.storage
         .from('product-media')
         .remove([filePath]);
     } catch (error) {
       console.log('Could not delete from storage:', error);
+      // Continue anyway - the file might not exist or path might be wrong
     }
 
     const newMedia = mediaUrls.filter((_, i) => i !== index);
     onMediaChange(newMedia);
+
+    toast({
+      title: 'Removido',
+      description: 'Arquivo removido com sucesso.',
+    });
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -148,7 +220,7 @@ export function ProductMediaUpload({
           Imagens e Vídeos ({mediaUrls.length}/{maxFiles})
         </label>
         <span className="text-xs text-muted-foreground">
-          Arraste ou clique para adicionar
+          {uploading ? uploadProgress : 'Arraste ou clique para adicionar'}
         </span>
       </div>
 
@@ -166,21 +238,22 @@ export function ProductMediaUpload({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => !uploading && fileInputRef.current?.click()}
       >
         <input
           ref={fileInputRef}
           type="file"
           multiple
-          accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
           onChange={(e) => handleFileSelect(e.target.files)}
           className="hidden"
+          disabled={uploading}
         />
 
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="h-10 w-10 animate-spin text-accent" />
-            <p className="text-sm text-muted-foreground">Enviando arquivos...</p>
+            <p className="text-sm text-muted-foreground font-medium">{uploadProgress}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
@@ -199,6 +272,15 @@ export function ProductMediaUpload({
         )}
       </div>
 
+      {/* Important Notice */}
+      <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+        <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+        <p className="text-xs text-blue-600 dark:text-blue-400">
+          <strong>Importante:</strong> Aguarde até que todos os arquivos sejam enviados antes de salvar o produto.
+          A primeira imagem será usada como foto principal.
+        </p>
+      </div>
+
       {/* Media Preview Grid */}
       {mediaUrls.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -212,6 +294,11 @@ export function ProductMediaUpload({
                   src={media.url}
                   alt={media.name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error('Error loading image:', media.url);
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" fill="%23999" font-size="12"%3EErro%3C/text%3E%3C/svg%3E';
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-foreground/5">
@@ -235,13 +322,23 @@ export function ProductMediaUpload({
                 </span>
               </div>
 
+              {/* Primary Badge */}
+              {index === 0 && (
+                <div className="absolute top-2 right-2">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/90 text-white">
+                    PRINCIPAL
+                  </span>
+                </div>
+              )}
+
               {/* Remove Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRemove(index);
                 }}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                disabled={uploading}
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -256,7 +353,7 @@ export function ProductMediaUpload({
           ))}
 
           {/* Add More Button */}
-          {mediaUrls.length < maxFiles && (
+          {mediaUrls.length < maxFiles && !uploading && (
             <button
               onClick={() => fileInputRef.current?.click()}
               className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-accent/50 flex flex-col items-center justify-center gap-2 transition-all hover:bg-secondary/30"

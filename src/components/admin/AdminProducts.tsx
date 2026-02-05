@@ -73,6 +73,7 @@ export function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -102,7 +103,7 @@ export function AdminProducts() {
 
       if (error) throw error;
       
-      // Parse media_urls from JSON - cast safely
+      // Parse media_urls from JSON
       const productsWithMedia = (data || []).map(p => ({
         ...p,
         media_urls: Array.isArray(p.media_urls) 
@@ -126,6 +127,45 @@ export function AdminProducts() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validation
+    if (!formData.name.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'O nome do produto é obrigatório',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      toast({
+        title: 'Erro',
+        description: 'O preço deve ser maior que zero',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!formData.category) {
+      toast({
+        title: 'Erro',
+        description: 'Selecione uma categoria',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (mediaUrls.length === 0) {
+      toast({
+        title: 'Atenção',
+        description: 'Recomendamos adicionar pelo menos uma imagem do produto',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSaving(true);
+
     try {
       // Parse specifications JSON
       let specs = null;
@@ -146,8 +186,8 @@ export function AdminProducts() {
       }
 
       const productData = {
-        name: formData.name,
-        description: formData.description || null,
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
         price: parseFloat(formData.price),
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
         image_url: mediaUrls.length > 0 ? mediaUrls[0].url : null,
@@ -156,7 +196,7 @@ export function AdminProducts() {
         discount: formData.discount ? parseInt(formData.discount) : null,
         rating: formData.rating ? parseFloat(formData.rating) : null,
         specifications: specs,
-        media_urls: mediaUrls as unknown as any, // Cast for Supabase JSON
+        media_urls: mediaUrls as unknown as any,
       };
 
       if (editingProduct) {
@@ -185,13 +225,15 @@ export function AdminProducts() {
       setIsDialogOpen(false);
       resetForm();
       fetchProducts();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving product:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao salvar produto. Verifique os dados.',
+        description: error?.message || 'Erro ao salvar produto. Verifique os dados.',
         variant: 'destructive',
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -206,10 +248,10 @@ export function AdminProducts() {
       in_stock: product.in_stock ?? true,
       discount: product.discount?.toString() || '',
       rating: product.rating?.toString() || '',
-      specifications: product.specifications 
-        ? Object.entries(product.specifications)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join('\n')
+      specifications: product.specifications
+        ? typeof product.specifications === 'string'
+          ? product.specifications
+          : JSON.stringify(product.specifications, null, 2)
         : '',
     });
     setMediaUrls(product.media_urls || []);
@@ -217,7 +259,7 @@ export function AdminProducts() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) return;
+    if (!confirm('Tem certeza que deseja excluir este produto?')) return;
 
     try {
       const { error } = await supabase.from('products').delete().eq('id', id);
@@ -226,22 +268,20 @@ export function AdminProducts() {
 
       toast({
         title: 'Sucesso',
-        description: 'Produto excluído com sucesso.',
+        description: 'Produto excluído com sucesso',
       });
-
       fetchProducts();
     } catch (error) {
       console.error('Error deleting product:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao excluir produto.',
+        description: 'Erro ao excluir produto',
         variant: 'destructive',
       });
     }
   };
 
   const resetForm = () => {
-    setEditingProduct(null);
     setFormData({
       name: '',
       description: '',
@@ -254,13 +294,8 @@ export function AdminProducts() {
       specifications: '',
     });
     setMediaUrls([]);
+    setEditingProduct(null);
   };
-
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -269,18 +304,17 @@ export function AdminProducts() {
     }).format(value);
   };
 
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome ou categoria..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 border-border bg-background h-11"
-          />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Produtos</h1>
+          <p className="text-muted-foreground mt-1">Gerencie o catálogo de produtos da loja</p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -288,32 +322,39 @@ export function AdminProducts() {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 h-11 px-6 font-semibold shadow-lg">
-              <Plus className="h-5 w-5 mr-2" />
+            <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md">
+              <Plus className="h-5 w-5" />
               Novo Produto
             </Button>
           </DialogTrigger>
-          
-          <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto border-border bg-background">
-            <DialogHeader className="pb-4 border-b border-border">
-              <DialogTitle className="text-2xl font-bold text-foreground flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent/10">
-                  <Package className="h-6 w-6 text-accent" />
-                </div>
-                {editingProduct ? 'Editar Produto' : 'Cadastrar Novo Produto'}
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">
+                {editingProduct ? 'Editar Produto' : 'Novo Produto'}
               </DialogTitle>
             </DialogHeader>
-            
-            <form onSubmit={handleSubmit} className="space-y-6 py-4">
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Media Upload Section */}
+              <div className="border border-border rounded-xl p-6 bg-secondary/20">
+                <ProductMediaUpload
+                  mediaUrls={mediaUrls}
+                  onMediaChange={setMediaUrls}
+                  maxFiles={10}
+                />
+              </div>
+
               {/* Basic Info Section */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
-                  Informações Básicas
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+              <div className="space-y-6 border border-border rounded-xl p-6 bg-background">
+                <div className="flex items-center gap-3 pb-3 border-b border-border">
+                  <div className="p-2 rounded-lg bg-accent/10">
+                    <Tag className="h-5 w-5 text-accent" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Informações Básicas</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="name" className="text-foreground font-medium">
                       Nome do Produto *
                     </Label>
@@ -321,9 +362,23 @@ export function AdminProducts() {
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Ex: Termômetro Digital Industrial"
+                      placeholder="Ex: Termômetro Digital Infravermelho"
                       required
                       className="border-border h-11"
+                    />
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="description" className="text-foreground font-medium">
+                      Descrição
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Descreva as características principais do produto"
+                      rows={3}
+                      className="border-border resize-none"
                     />
                   </div>
 
@@ -331,9 +386,10 @@ export function AdminProducts() {
                     <Label htmlFor="category" className="text-foreground font-medium">
                       Categoria *
                     </Label>
-                    <Select 
-                      value={formData.category} 
+                    <Select
+                      value={formData.category}
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
+                      required
                     >
                       <SelectTrigger className="border-border h-11">
                         <SelectValue placeholder="Selecione uma categoria" />
@@ -348,33 +404,21 @@ export function AdminProducts() {
                     </Select>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-foreground font-medium">
-                    Descrição Completa
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Descreva o produto em detalhes, incluindo características, benefícios e aplicações..."
-                    rows={4}
-                    className="border-border resize-none"
-                  />
-                </div>
               </div>
 
               {/* Pricing Section */}
-              <div className="space-y-4 p-4 rounded-xl bg-secondary/30 border border-border">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Preços e Desconto
-                </h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-6 border border-border rounded-xl p-6 bg-background">
+                <div className="flex items-center gap-3 pb-3 border-b border-border">
+                  <div className="p-2 rounded-lg bg-success/10">
+                    <DollarSign className="h-5 w-5 text-success" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Preços e Estoque</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="price" className="text-foreground font-medium">
-                      Preço de Venda (R$) *
+                      Preço Atual (R$) *
                     </Label>
                     <Input
                       id="price"
@@ -383,7 +427,7 @@ export function AdminProducts() {
                       min="0"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="0,00"
+                      placeholder="0.00"
                       required
                       className="border-border h-11"
                     />
@@ -400,7 +444,7 @@ export function AdminProducts() {
                       min="0"
                       value={formData.original_price}
                       onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
-                      placeholder="0,00"
+                      placeholder="0.00"
                       className="border-border h-11"
                     />
                   </div>
@@ -420,29 +464,9 @@ export function AdminProducts() {
                       className="border-border h-11"
                     />
                   </div>
-                </div>
-              </div>
 
-              {/* Media Upload Section */}
-              <div className="space-y-4 p-4 rounded-xl bg-accent/5 border border-accent/20">
-                <ProductMediaUpload
-                  mediaUrls={mediaUrls}
-                  onMediaChange={setMediaUrls}
-                  maxFiles={10}
-                />
-              </div>
-
-              {/* Additional Info Section */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Layers className="h-4 w-4" />
-                  Informações Adicionais
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="rating" className="text-foreground font-medium flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
+                    <Label htmlFor="rating" className="text-foreground font-medium">
                       Avaliação (0-5)
                     </Label>
                     <Input
@@ -458,7 +482,7 @@ export function AdminProducts() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background">
+                  <div className="md:col-span-2 flex items-center justify-between p-4 border border-border rounded-lg bg-background">
                     <div>
                       <Label htmlFor="in_stock" className="text-foreground font-medium cursor-pointer">
                         Disponível em Estoque
@@ -474,10 +498,20 @@ export function AdminProducts() {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Specifications Section */}
+              <div className="space-y-6 border border-border rounded-xl p-6 bg-background">
+                <div className="flex items-center gap-3 pb-3 border-b border-border">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Layers className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Especificações Técnicas</h3>
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="specifications" className="text-foreground font-medium">
-                    Especificações Técnicas
+                    Especificações
                   </Label>
                   <Textarea
                     id="specifications"
@@ -500,19 +534,39 @@ export function AdminProducts() {
                   variant="outline" 
                   onClick={() => setIsDialogOpen(false)} 
                   className="border-border h-11 px-6"
+                  disabled={saving}
                 >
                   Cancelar
                 </Button>
                 <Button 
                   type="submit" 
                   className="bg-accent text-accent-foreground hover:bg-accent/90 h-11 px-8 font-semibold"
+                  disabled={saving}
                 >
-                  {editingProduct ? 'Salvar Alterações' : 'Cadastrar Produto'}
+                  {saving ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Salvando...
+                    </>
+                  ) : (
+                    editingProduct ? 'Salvar Alterações' : 'Cadastrar Produto'
+                  )}
                 </Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          placeholder="Buscar produtos por nome ou categoria..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 h-12 border-border"
+        />
       </div>
 
       {/* Products Table */}
@@ -565,6 +619,7 @@ export function AdminProducts() {
                               src={product.image_url || product.media_urls[0]?.url}
                               alt={product.name}
                               className="h-14 w-14 rounded-lg object-cover border border-border shadow-sm"
+                              loading="lazy"
                             />
                           ) : (
                             <div className="h-14 w-14 rounded-lg bg-secondary flex items-center justify-center border border-border">
