@@ -143,16 +143,32 @@
      };
    }, []);
  
-   const signOut = async (): Promise<{ error: Error | null }> => {
-     try {
-       const { error } = await supabase.auth.signOut();
-       if (error) throw error;
-       return { error: null };
-     } catch (error) {
-       console.error("Error signing out:", error);
-       return { error: error as Error };
-     }
-   };
+  const signOut = async (): Promise<{ error: Error | null }> => {
+    try {
+      // Limpar estado local primeiro
+      setState({
+        user: null,
+        session: null,
+        isAdmin: false,
+        isLoading: false,
+        userName: "",
+      });
+      
+      // Fazer logout no Supabase
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) throw error;
+      
+      // Reload completo para limpar todos os estados
+      window.location.href = '/';
+      
+      return { error: null };
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // Mesmo com erro, forçar reload para limpar estado
+      window.location.href = '/';
+      return { error: error as Error };
+    }
+  };
  
    return {
      ...state,

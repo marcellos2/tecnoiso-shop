@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Lock, Check, AlertCircle, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import logo from "@/assets/logo.png";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FormData {
   // Dados Pessoais
@@ -32,6 +33,7 @@ export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -49,6 +51,28 @@ export default function Checkout() {
     city: "",
     state: "",
   });
+
+  // Redirecionar para login se não autenticado
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para continuar com a compra",
+        variant: "destructive",
+      });
+      navigate("/auth", { replace: true });
+    }
+  }, [user, authLoading, navigate, toast]);
+
+  // Preencher email do usuário logado
+  useEffect(() => {
+    if (user?.email && !formData.email) {
+      setFormData(prev => ({ ...prev, email: user.email || "" }));
+    }
+    if (user?.user_metadata?.full_name && !formData.fullName) {
+      setFormData(prev => ({ ...prev, fullName: user.user_metadata.full_name || "" }));
+    }
+  }, [user]);
 
   const formatPrice = (price: number) => {
     return price.toLocaleString("pt-BR", {
@@ -219,6 +243,30 @@ export default function Checkout() {
       setIsProcessing(false);
     }
   };
+
+  // Loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-accent" />
+          <p className="text-muted-foreground">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Não autenticado - será redirecionado pelo useEffect
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-accent" />
+          <p className="text-muted-foreground">Redirecionando para login...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
