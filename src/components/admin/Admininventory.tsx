@@ -39,6 +39,7 @@ interface InventoryItem {
   min_stock: number;
   price: number;
   category: string;
+  in_stock: boolean;
 }
 
 export function AdminInventory() {
@@ -66,11 +67,12 @@ export function AdminInventory() {
       const inventoryData = (data || []).map(product => ({
         id: product.id,
         name: product.name,
-        sku: product.sku || `SKU-${product.id.slice(0, 8)}`,
-        stock: product.stock || 0,
-        min_stock: product.min_stock || 5,
+        sku: `SKU-${product.id.slice(0, 8).toUpperCase()}`,
+        stock: product.in_stock ? 10 : 0, // Simulated stock based on in_stock boolean
+        min_stock: 5,
         price: product.price,
         category: product.category || 'Sem categoria',
+        in_stock: product.in_stock ?? true,
       }));
 
       setInventory(inventoryData);
@@ -101,9 +103,10 @@ export function AdminInventory() {
         return;
       }
 
+      // Update in_stock based on new stock value
       const { error } = await supabase
         .from('products')
-        .update({ stock: newStock })
+        .update({ in_stock: newStock > 0 })
         .eq('id', selectedItem.id);
 
       if (error) throw error;

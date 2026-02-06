@@ -6,11 +6,11 @@ import { AdminProducts } from '@/components/admin/AdminProducts';
 import { AdminOrders } from '@/components/admin/AdminOrders';
 import { AdminRequests } from '@/components/admin/AdminRequests';
 import { AdminSettings } from '@/components/admin/AdminSettings';
-import { AdminCustomers } from '@/components/admin/AdminCustomers';
-import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
-import { AdminInventory } from '@/components/admin/AdminInventory';
-import { AdminReports } from '@/components/admin/AdminReports';
-import { AdminMarketing } from '@/components/admin/AdminMarketing';
+import { AdminCustomers } from '@/components/admin/Admincustomers';
+import { AdminAnalytics } from '@/components/admin/Adminanalytics';
+import { AdminInventory } from '@/components/admin/Admininventory';
+import { AdminReports } from '@/components/admin/Adminreports';
+import { AdminMarketing } from '@/components/admin/Adminmarketing';
 import { 
   Loader2, 
   LayoutDashboard, 
