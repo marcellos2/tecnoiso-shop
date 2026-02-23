@@ -30,26 +30,12 @@
      return () => window.removeEventListener('scroll', handleScroll);
    }, []);
  
-   const handleLogout = useCallback(async () => {
-     const { error } = await signOut();
-     
-     if (error) {
-       toast({
-         title: 'Erro ao sair',
-         description: 'Ocorreu um erro ao fazer logout. Tente novamente.',
-         variant: 'destructive',
-       });
-       return;
-     }
- 
-     toast({
-       title: 'Até logo!',
-       description: 'Você saiu da sua conta com sucesso.',
-     });
-     
-     // Force full page reload to clear all React state
-     window.location.href = '/';
-   }, [signOut, toast]);
+  const handleLogout = useCallback(async () => {
+    await signOut();
+    
+    // Reload completo para limpar todo o estado React
+    window.location.href = '/';
+  }, [signOut]);
  
    const navLinks = [
      { name: 'Categorias', href: '/', hasDropdown: true },
