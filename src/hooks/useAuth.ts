@@ -154,18 +154,16 @@
         userName: "",
       });
       
-      // Fazer logout no Supabase
-      const { error } = await supabase.auth.signOut({ scope: 'local' });
-      if (error) throw error;
+      // Fazer logout no Supabase (scope global para limpar todos os tokens)
+      await supabase.auth.signOut({ scope: 'global' }).catch(() => {});
       
-      // Reload completo para limpar todos os estados
-      window.location.href = '/';
+      // Limpar storage manualmente para evitar conflito Google/email
+      localStorage.removeItem('sb-bjibabicdpnupqszsqhz-auth-token');
+      sessionStorage.clear();
       
       return { error: null };
     } catch (error) {
       console.error("Error signing out:", error);
-      // Mesmo com erro, forçar reload para limpar estado
-      window.location.href = '/';
       return { error: error as Error };
     }
   };

@@ -316,3 +316,8 @@ section[class*="hero"] {
   position: relative;
   z-index: 10;
 }
+
+/* Ocultar badge Lovable globalmente */
+#lovable-badge {
+  display: none !important;
+}
